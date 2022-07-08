@@ -7,3 +7,6 @@
 [submodule "packages/foundry-ts/lib/openzeppelin-contracts"]
 	path = packages/foundry-ts/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "packages/foundry-ts/lib/set-protocol-v2"]
+	path = packages/foundry-ts/lib/set-protocol-v2
+	url = https://github.com/setprotocol/set-protocol-v2
