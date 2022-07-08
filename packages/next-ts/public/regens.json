@@ -1,0 +1,43 @@
+{
+  "name": "RegenFinanceRegens",
+  "logoURI": "https://",
+  "keywords": ["refi"],
+  "timestamp": "2022-07-08T12:09:29.206+00:00",
+  "people": [
+    {
+      "name": "Daniele Salatti",
+      "address": "0x523d007855B3543797E0d3D462CB44B601274819",
+      "ensName": "salatti.eth",
+      "avatarURI": "https://danielesalatti.com/static/images/avatar.jpg",
+      "bio": "🖖",
+      "website": "https://danielesalatti.com",
+      "twitter": "https://twitter.com/DanieleSalatti",
+      "github": "https://github.com/DanieleSalatti"
+    },
+    {
+      "name": "Austin Griffith",
+      "address": "0x34aa3f359a9d614239015126635ce7732c18fdf3",
+      "ensName": "austingriffith.eth",
+      "avatarURI": "https://pbs.twimg.com/profile_images/1484336102693490689/bmhym86N_400x400.jpg",
+      "bio": "Coming soon",
+      "website": "",
+      "twitter": "https://twitter.com/austingriffith",
+      "github": ""
+    },
+    {
+      "name": "Kevin Owocki",
+      "address": "0x00De4B13153673BCAE2616b67bf822500d325Fc3",
+      "ensName": "kev.eth",
+      "avatarURI": "https://pbs.twimg.com/profile_images/1486812438750121984/zpLPRpbS_400x400.jpg",
+      "bio": "Coming soon",
+      "website": "",
+      "twitter": "https://twitter.com/owocki",
+      "github": ""
+    }
+  ],
+  "version": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0
+  }
+}
