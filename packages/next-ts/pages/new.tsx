@@ -1,13 +1,14 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import type { NextPage } from "next";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useAccount, useBalance, useProvider, useSigner, useNetwork } from "wagmi";
 import Select from "react-select";
 import SetJs from "set.js";
-
+import { chain } from "wagmi";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 import { SetProtocolConfig } from "../config/setProtocolConfig";
+import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 
 type Token = {
   chainId: number;
@@ -27,6 +28,7 @@ const New: NextPage = () => {
   const [newSetName, setNewSetName] = useState<string>("");
   const [newSetDescription, setNewSetDescription] = useState<string>("");
   const [newSetSymbol, setNewSetSymbol] = useState<string>("");
+  const [newSetAddress, setNewSetAddress] = useState<string>("");
 
   const { address: address, isConnecting } = useAccount();
   const { data } = useBalance({ addressOrName: address });
@@ -40,8 +42,10 @@ const New: NextPage = () => {
   console.log("provider", provider);
   console.log("setProtocolConfig", setProtocolConfig);
 
+  const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+
   const SetJsConfig = {
-    ethersProvider: provider,
+    ethersProvider: tempProvider,
     ...setProtocolConfig,
   };
 
@@ -55,6 +59,10 @@ const New: NextPage = () => {
         setTokens(data.tokens[provider.network.name === "homestead" ? "mainnet" : provider.network.name]);
       });
   }, [provider.network.name]);
+
+  useEffect(() => {
+    console.log("DASA NEW SET ADDRESS", newSetAddress);
+  }, [newSetAddress]);
 
   function getLabel({ name, symbol, logoURI }: Token) {
     return (
@@ -183,7 +191,7 @@ const New: NextPage = () => {
               newSetTokenList.length === 0 ||
               address === undefined
             }
-            onClick={() => {
+            onClick={async () => {
               console.log(newSetTokenList);
               console.log(newSetTokenPercentageList);
               if (address === undefined) {
@@ -198,7 +206,7 @@ const New: NextPage = () => {
               console.log("newSetTokenPercentageList", newSetTokenPercentageList);
               console.log("network.chain?.name", network.chain?.name.toLowerCase());
               console.log("config", setProtocolConfig);
-              console.log("modules", setProtocolConfig["BasicIssuanceModule"]);
+              console.log("modules", setProtocolConfig["basicIssuanceModuleAddress"]);
               console.log("address", address);
               console.log("newSetName", newSetName);
               console.log("newSetSymbol", newSetSymbol);
@@ -207,16 +215,31 @@ const New: NextPage = () => {
                 .createAsync(
                   tokenSetList,
                   newSetTokenPercentageList,
-                  [setProtocolConfig["BasicIssuanceModule"]],
+                  [setProtocolConfig["basicIssuanceModuleAddress"]],
                   address,
                   newSetName,
                   newSetSymbol
                 )
-                .then((result) => {
-                  console.log(result);
+                .then(async (result) => {
+                  const eventSignature = "SetTokenCreated(address,address,string,string)";
+                  const rcpt = await result.wait();
+
+                  // Implementing my own logic because the one from set.js doesn't seem to work
+                  // TODO: contribute better logic to set.js
+                  rcpt.events?.forEach((event) => {
+                    if (
+                      event.eventSignature === eventSignature &&
+                      event.transactionHash === result.hash &&
+                      event.address === setProtocolConfig["setTokenCreatorAddress"] &&
+                      event.args &&
+                      event.args[1] === address
+                    ) {
+                      setNewSetAddress(event.args[0]);
+                    }
+                  });
                 })
                 .catch((error) => {
-                  console.log(error);
+                  console.log("DASA ERROR", error);
                 })
                 .finally(() => {
                   setNewSetTokenList([]);

@@ -12,8 +12,6 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
 contract RFStorage is Ownable {
   event AddTokenSet(address manager, address tokenSet, uint256 version);
 
-  address public managerContract;
-
   struct TokenSet {
     address tokenSet;
     uint256 version;
@@ -24,10 +22,6 @@ contract RFStorage is Ownable {
 
   constructor(address _owner) payable {
     transferOwnership(_owner);
-  }
-
-  function setManagerContract(address _managerContract) public onlyOwner {
-    managerContract = _managerContract;
   }
 
   function addTokenSet(
@@ -51,9 +45,4 @@ contract RFStorage is Ownable {
   receive() external payable {}
 
   fallback() external payable {}
-
-  modifier onlyManagerContract() {
-    require(msg.sender == managerContract, "Only manager contract can call this function");
-    _;
-  }
 }

@@ -26,16 +26,18 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
       [
         // alchemyProvider({ alchemyId: process.env.ALCHEMY_ID })
         jsonRpcProvider({
-          rpc: () => ({
-            http: "https://kovan.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
-            webSocket: "wss://kovan.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
-          }),
-        }),
-        jsonRpcProvider({
-          rpc: () => ({
-            http: "https://mainnet.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
-            webSocket: "wss://mainnet.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
-          }),
+          rpc: (chain: Chain) => {
+            if (chain.id === 42) {
+              return {
+                http: "https://kovan.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
+                webSocket: "wss://kovan.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
+              };
+            }
+            return {
+              http: "https://mainnet.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
+              webSocket: "wss://mainnet.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
+            };
+          },
         }),
         /*publicProvider(),*/
       ]
