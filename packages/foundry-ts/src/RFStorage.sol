@@ -10,7 +10,7 @@ import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract RFStorage is Ownable {
-  event AddTokenSet(address owner, address tokenSet, uint256 version);
+  event AddTokenSet(address manager, address tokenSet, uint256 version);
 
   address public managerContract;
 
@@ -19,11 +19,11 @@ contract RFStorage is Ownable {
     uint256 version;
   }
 
-  mapping(address => TokenSet[]) tokenSets;
-  mapping(address => address) tokenSetOwners;
+  mapping(address => TokenSet[]) public tokenSets;
+  mapping(address => address) public tokenSetManagers;
 
-  constructor(address _managerContract) payable {
-    managerContract = _managerContract;
+  constructor(address _owner) payable {
+    transferOwnership(_owner);
   }
 
   function setManagerContract(address _managerContract) public onlyOwner {
@@ -31,24 +31,29 @@ contract RFStorage is Ownable {
   }
 
   function addTokenSet(
-    address _owner,
+    address _manager,
     address _tokenSet,
     uint256 _version
-  ) public {
-    require(_owner != address(0), "owner cannot be 0");
+  ) public onlyManagerContract {
+    require(_manager != address(0), "owner cannot be 0");
     require(_tokenSet != address(0), "tokenSet cannot be 0");
     require(_version != 0, "version cannot be 0");
-    require(tokenSetOwners[_tokenSet] == address(0), "TokenSet already exists");
+    require(tokenSetManagers[_tokenSet] == address(0), "TokenSet already exists");
 
     TokenSet memory newTokenSet = TokenSet({ tokenSet: _tokenSet, version: _version });
 
-    tokenSets[_owner].push(newTokenSet);
-    tokenSetOwners[_tokenSet] = _owner;
+    tokenSets[_manager].push(newTokenSet);
+    tokenSetManagers[_tokenSet] = _manager;
 
-    emit AddTokenSet(_owner, _tokenSet, _version);
+    emit AddTokenSet(_manager, _tokenSet, _version);
   }
 
   receive() external payable {}
 
   fallback() external payable {}
+
+  modifier onlyManagerContract() {
+    require(msg.sender == managerContract, "Only manager contract can call this function");
+    _;
+  }
 }

@@ -14,7 +14,7 @@ export const ContractsConfig = {
 /** ----------------------
  * add targeted chain names
  * ---------------------*/
-const TARGATED_CHAINS = ["hardhat", "rinkeby", "mainnet"];
+const TARGATED_CHAINS = ["kovan", "mainnet"];
 // define your target names in root .env file inside NEXT_PUBLIC_TARGET_NETWORKS variable
 // const TARGATED_CHAINS = [...(process.env.NEXT_PUBLIC_TARGET_NETWORKS as string).split(",")];
 

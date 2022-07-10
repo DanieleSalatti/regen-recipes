@@ -9,50 +9,40 @@ import "forge-std/Test.sol";
 // import "openzeppelin-contracts/contracts/utils/Address.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-// import { ISetToken } from "@setprotocol/set-protocol-v2/contracts/interfaces/ISetToken.sol";
+import "./RFStorage.sol";
+import { ISetToken } from "./set-protocol-v2/ISetToken.sol";
+import { ISetTokenCreator } from "./set-protocol-v2/ISetTokenCreator.sol";
 
-contract RFManager is Ownable {
-  address public SetTokenCreator;
-  address public Controller;
-  address public IntegrationRegistry;
-  address public PriceOracle;
-  address public SetValuer;
-  address public ProtocolViewer;
+contract RFManager is Ownable, ISetTokenCreator {
+  ISetTokenCreator public setTokenCreator;
 
-  constructor(
-    address _SetTokenCreator,
-    address _Controller,
-    address _IntegrationRegistry,
-    address _PriceOracle,
-    address _SetValuer,
-    address _ProtocolViewer
-  ) public payable {
-    SetTokenCreator = _SetTokenCreator;
-    Controller = _Controller;
-    IntegrationRegistry = _IntegrationRegistry;
-    PriceOracle = _PriceOracle;
-    SetValuer = _SetValuer;
-    ProtocolViewer = _ProtocolViewer;
+  RFStorage public rfStorage;
+
+  constructor(address _owner) payable {
+    transferOwnership(_owner);
   }
 
-  function setSetTokenCreator(address _SetTokenCreator) public onlyOwner {
-    SetTokenCreator = _SetTokenCreator;
+  function create(
+    address[] memory _components,
+    int256[] memory _units,
+    address[] memory _modules,
+    address _manager,
+    string memory _name,
+    string memory _symbol
+  ) external returns (address) {
+    address newSet = setTokenCreator.create(_components, _units, _modules, _manager, _name, _symbol);
+
+    rfStorage.addTokenSet(_manager, newSet, 2);
+
+    return newSet;
   }
 
-  function setController(address _Controller) public onlyOwner {
-    Controller = _Controller;
+  function setRFStorage(address payable _rfStorage) public onlyOwner {
+    rfStorage = RFStorage(_rfStorage);
   }
 
-  function setIntegrationRegistry(address _IntegrationRegistry) public onlyOwner {
-    IntegrationRegistry = _IntegrationRegistry;
-  }
-
-  function setPriceOracle(address _PriceOracle) public onlyOwner {
-    PriceOracle = _PriceOracle;
-  }
-
-  function setSetValuer(address _SetValuer) public onlyOwner {
-    SetValuer = _SetValuer;
+  function setSetTokenCreator(address _setTokenCreator) public onlyOwner {
+    setTokenCreator = ISetTokenCreator(_setTokenCreator);
   }
 
   receive() external payable {}

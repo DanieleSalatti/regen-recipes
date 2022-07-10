@@ -22,8 +22,8 @@ const Home: NextPage = () => {
   const [contractPurpose, setContractPurpose] = useState<string>("");
   const [regens, setRegens] = useState<Regen[]>([]);
 
-  const { data: accountData, isLoading } = useAccount();
-  const { data } = useBalance({ addressOrName: accountData?.address });
+  const { address, isConnecting } = useAccount();
+  const { data } = useBalance({ addressOrName: address });
 
   const YourContract = useAppLoadContract({
     contractName: "YourContract",
@@ -46,7 +46,7 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <main className="flex flex-col items-start justify-center m-2 lg:mx-4">
+      <main className="flex flex-col items-center justify-center m-2 lg:mx-4">
         <div className="m-2">
           <div className="grid grid-cols-3 gap-16">
             {regens.map((regen) => (

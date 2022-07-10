@@ -76,10 +76,11 @@
       "yarn workspace @scaffold-eth/foundry-ts format"
     ],
     "packages/foundry-ts/src/**/*.sol": [
-      "yarn workspace @scaffold-eth/foundry-ts format"
+      "yarn workspace @scaffold-eth/foundry-ts format",
+      "yarn workspace @scaffold-eth/foundry-ts solhint --fix"
     ]
   },
   "dependencies": {
-    "set.js": "^0.6.0"
+    "react-select": "^5.4.0"
   }
 }

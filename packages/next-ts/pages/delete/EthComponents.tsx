@@ -2,13 +2,13 @@ import { NextPage } from "next";
 import { useState } from "react";
 import { useAccount, useProvider } from "wagmi";
 
-import Address from "../components/EthComponents/Address";
-import AddressInput from "../components/EthComponents/AddressInput";
-import Balance from "../components/EthComponents/Balance";
-import Blockie from "../components/EthComponents/Blockie";
-import EtherInput from "../components/EthComponents/EtherInput";
-import PunkBlockie from "../components/EthComponents/PunkBlockie";
-import { useStore } from "../store/useStore";
+import Address from "../../components/EthComponents/Address";
+import AddressInput from "../../components/EthComponents/AddressInput";
+import Balance from "../../components/EthComponents/Balance";
+import Blockie from "../../components/EthComponents/Blockie";
+import EtherInput from "../../components/EthComponents/EtherInput";
+import PunkBlockie from "../../components/EthComponents/PunkBlockie";
+import { useStore } from "../../store/useStore";
 
 const EthComponents: NextPage = () => {
   const { data } = useAccount();

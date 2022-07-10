@@ -1,8 +1,11 @@
 {
-    "31337": {
+    "42": {
         "contracts": {
-            "YourContract": {
-                "address": "0xc724df3d4a6dff182c46291fa07892bf1c8f6a7a"
+            "RFStorage": {
+                "address": "0xd732a6d9d309ff1e89b3e16104557fffea017ec5"
+            },
+            "RFManager": {
+                "address": "0x9466acc3561912e275d584d52e313c723fad13a1"
             }
         }
     }

@@ -2,6 +2,7 @@ import { darkTheme, getDefaultWallets, RainbowKitProvider, lightTheme } from "@r
 import { Chain, chain, configureChains, createClient, WagmiConfig } from "wagmi";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -18,21 +19,38 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
   /**----------------------
    * load rainbow confgs
    * ---------------------*/
+
   useEffect(() => {
     const { chains, provider } = configureChains(
       [...targedChains],
-      [alchemyProvider({ alchemyId: process.env.ALCHEMY_ID }), publicProvider()]
+      [
+        // alchemyProvider({ alchemyId: process.env.ALCHEMY_ID })
+        jsonRpcProvider({
+          rpc: () => ({
+            http: "https://kovan.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
+            webSocket: "wss://kovan.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
+          }),
+        }),
+        jsonRpcProvider({
+          rpc: () => ({
+            http: "https://mainnet.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
+            webSocket: "wss://mainnet.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
+          }),
+        }),
+        /*publicProvider(),*/
+      ]
     );
+    console.log("RainbowKitWrapper useEffect", chains);
     setChains(chains);
 
     const { connectors } = getDefaultWallets({
-      appName: "My RainbowKit App",
+      appName: "Regen.Finance",
       chains,
     });
 
     const wagmiClient = createClient({
       autoConnect: true,
-      connectors,
+      connectors: connectors,
       provider,
     });
     setWagmiClient(wagmiClient);
@@ -55,7 +73,13 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
     <div>
       {wagmiClient !== undefined && (
         <WagmiConfig client={wagmiClient}>
-          <RainbowKitProvider chains={chains as Chain[]} theme={currentTheme}>
+          <RainbowKitProvider
+            chains={chains as Chain[]}
+            theme={currentTheme}
+            appInfo={{
+              appName: "Regen.Finance",
+              learnMoreUrl: "https://danielesalatti.com",
+            }}>
             {children}
           </RainbowKitProvider>
         </WagmiConfig>

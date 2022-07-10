@@ -376,13 +376,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coinbase/wallet-sdk@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "@coinbase/wallet-sdk@npm:3.2.0"
+"@coinbase/wallet-sdk@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@coinbase/wallet-sdk@npm:3.3.0"
   dependencies:
     "@metamask/safe-event-emitter": 2.0.0
     bind-decorator: ^1.0.11
     bn.js: ^5.1.1
+    buffer: ^6.0.3
     clsx: ^1.1.0
     eth-block-tracker: 4.4.3
     eth-json-rpc-filters: 4.2.2
@@ -394,7 +395,8 @@ __metadata:
     qs: ^6.10.3
     rxjs: ^6.6.3
     stream-browserify: ^3.0.0
-  checksum: e286b137182c222eac5b75b13fcaedcf9d015f991c50d4a3385fabdc0044851af75e42993d76f10c895b804c0cbc035c4f99fa840cdaa73d8fda84bf0e008058
+    util: ^0.12.4
+  checksum: 9d655cd69f21e607ae4bb931d2d80fa743c7c486d0ac8741fa69e296cbaa55c11a550c5885d4e1b80c7b8ac4702075bb190ed2d33bf580c0301036e70d7f8a2f
   languageName: node
   linkType: hard
 
@@ -2249,22 +2251,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rainbow-me/rainbowkit@npm:^0.2.3":
-  version: 0.2.5
-  resolution: "@rainbow-me/rainbowkit@npm:0.2.5"
+"@rainbow-me/rainbowkit@npm:^0.4.0":
+  version: 0.4.2
+  resolution: "@rainbow-me/rainbowkit@npm:0.4.2"
   dependencies:
     "@vanilla-extract/css": 1.7.0
     "@vanilla-extract/dynamic": 2.0.2
     "@vanilla-extract/sprinkles": 1.4.1
     clsx: 1.1.1
     qrcode: 1.5.0
-    react-remove-scroll: 2.5.3
+    react-remove-scroll: 2.5.4
   peerDependencies:
     ethers: ">=5.5.1"
     react: ">=17"
     react-dom: ">=17"
-    wagmi: ^0.4.2
-  checksum: 57d4420718d93cc6e9bbe5da876fd5eeb2b447d8013802fa92dba98139fdd23c3980032cf01bd04c7c03501d4b6c9a0cde5cbcaf37f3168646081f0517b9af1e
+    wagmi: 0.5.x
+  checksum: 59115d47fd1a7a222d33a1ddff1d660f87ca5320a7b26a18d18a9097f38f16479226470305219bf2b4ee647be1a0860c0fef1574fe9a3409e20ad3a3c3ac7d31
   languageName: node
   linkType: hard
 
@@ -2504,7 +2506,7 @@ __metadata:
   dependencies:
     "@ethersproject/providers": ^5.6.8
     "@next/eslint-plugin-next": ^12.1.6
-    "@rainbow-me/rainbowkit": ^0.2.3
+    "@rainbow-me/rainbowkit": ^0.4.0
     "@tailwindcss/forms": ^0.5.2
     "@tailwindcss/typography": ^0.5.2
     "@types/node": 17.0.40
@@ -2548,11 +2550,12 @@ __metadata:
     react-select: ^5.4.0
     react-toastify: ^9.0.4
     sass: ^1.52.2
+    set.js: ^0.6.0
     shx: ^0.3.4
     tailwindcss: ^3.0.24
     typescript: 4.7.3
     vercel: ^25.1.0
-    wagmi: ^0.4.9
+    wagmi: ^0.5.9
   languageName: unknown
   linkType: soft
 
@@ -2566,6 +2569,7 @@ __metadata:
     lint-staged: ^12.4.1
     prettier: ^2.6.2
     prettier-plugin-solidity: ^1.0.0-beta.19
+    react-select: ^5.4.0
     sass: ^1.51.0
     set.js: ^0.6.0
     shx: ^0.3.4
@@ -3853,14 +3857,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wagmi/core@npm:^0.3.8":
-  version: 0.3.8
-  resolution: "@wagmi/core@npm:0.3.8"
+"@wagmi/core@npm:^0.4.7":
+  version: 0.4.7
+  resolution: "@wagmi/core@npm:0.4.7"
   dependencies:
     eventemitter3: ^4.0.7
     zustand: ^4.0.0-rc.1
   peerDependencies:
-    "@coinbase/wallet-sdk": ">=3.2.0"
+    "@coinbase/wallet-sdk": ">=3.3.0"
     "@walletconnect/ethereum-provider": ">=1.7.5"
     ethers: ">=5.5.1"
   peerDependenciesMeta:
@@ -3868,7 +3872,7 @@ __metadata:
       optional: true
     "@walletconnect/ethereum-provider":
       optional: true
-  checksum: 9be22804a93bc07b5579ad9f9c1f22afce37ba2bf4ae24807dd92cc8d0addddb5c595c5f55e25782611297a34ee2603bd2939d4f3c95ee4b23572212f19b78c7
+  checksum: 8ccb40f0c14e36082d1332c3277d02d46347a135c2972c09b96e90ece4b37d71a1b3075a10a44f8fdb310ff0524a75726bb30ca605ebccbcb5273bc0b2d6fa34
   languageName: node
   linkType: hard
 
@@ -18173,7 +18177,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-remove-scroll-bar@npm:^2.3.1":
+"react-remove-scroll-bar@npm:^2.3.3":
   version: 2.3.3
   resolution: "react-remove-scroll-bar@npm:2.3.3"
   dependencies:
@@ -18189,13 +18193,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-remove-scroll@npm:2.5.3":
-  version: 2.5.3
-  resolution: "react-remove-scroll@npm:2.5.3"
+"react-remove-scroll@npm:2.5.4":
+  version: 2.5.4
+  resolution: "react-remove-scroll@npm:2.5.4"
   dependencies:
-    react-remove-scroll-bar: ^2.3.1
-    react-style-singleton: ^2.2.0
-    tslib: ^2.0.0
+    react-remove-scroll-bar: ^2.3.3
+    react-style-singleton: ^2.2.1
+    tslib: ^2.1.0
     use-callback-ref: ^1.3.0
     use-sidecar: ^1.1.2
   peerDependencies:
@@ -18204,7 +18208,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 7b486cd4685ca27958572a725657498b6d103c51f958b93a33eb06278c4c7ba38933273350ae1e94b91efe8e7021af6b63ea187737cccd62edbecb03630d07d4
+  checksum: 01b0f65542a4c8803ee748b4e6cf2adad66d034e15fb72e8455773b0d7b178ec806b3194d74f412db7064670c45552cc666c04e9fb3b5d466dce5fb48e634825
   languageName: node
   linkType: hard
 
@@ -18250,7 +18254,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-style-singleton@npm:^2.2.0, react-style-singleton@npm:^2.2.1":
+"react-style-singleton@npm:^2.2.1":
   version: 2.2.1
   resolution: "react-style-singleton@npm:2.2.1"
   dependencies:
@@ -21865,7 +21869,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util@npm:^0.12.0, util@npm:^0.12.3":
+"util@npm:^0.12.0, util@npm:^0.12.3, util@npm:^0.12.4":
   version: 0.12.4
   resolution: "util@npm:0.12.4"
   dependencies:
@@ -22023,19 +22027,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wagmi@npm:^0.4.9":
-  version: 0.4.12
-  resolution: "wagmi@npm:0.4.12"
+"wagmi@npm:^0.5.9":
+  version: 0.5.9
+  resolution: "wagmi@npm:0.5.9"
   dependencies:
-    "@coinbase/wallet-sdk": ^3.2.0
-    "@wagmi/core": ^0.3.8
+    "@coinbase/wallet-sdk": ^3.3.0
+    "@wagmi/core": ^0.4.7
     "@walletconnect/ethereum-provider": ^1.7.8
     react-query: ^4.0.0-beta.23
     use-sync-external-store: ^1.1.0
   peerDependencies:
     ethers: ">=5.5.1"
     react: ">=17.0.0"
-  checksum: 82184eb4ede770a699056d4a36953894a78accc7d60033602fccfb62cd264d4bbe02b6ea2bf71c1961578bd90e6c710faa9fb796467471d7606937f34054a5ab
+  checksum: d8aaec1c26fa4faca523758ccc4dc17c51bdf6e2f5649d546f2c704883bd667a0841c27a35b836a3bf67666349a8d39ca7258d54c8ca030a46b6330d4b4e9fb0
   languageName: node
   linkType: hard
 

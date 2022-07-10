@@ -9,7 +9,9 @@ const Header: React.FC = () => {
       <div className="flex flex-col items-center">
         <div className="navbar bg-base-100  shadow-sm">
           <div className="navbar-start">
-            <a className="text-sm normal-case btn btn-ghost lg:text-xl">Regen.Finance</a>
+            <a className="text-sm normal-case btn btn-ghost lg:text-xl" href="/">
+              🌱 Regen.Finance
+            </a>
           </div>
           <div className="hidden navbar-center lg:flex"></div>
           <div className="navbar-end">

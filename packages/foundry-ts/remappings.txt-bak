@@ -2,3 +2,4 @@ ds-test/=lib/solmate/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 solmate/=lib/solmate/src/
+set-protocol-v2/=lib/set-protocol-v2/

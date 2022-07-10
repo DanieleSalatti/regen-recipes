@@ -3,7 +3,7 @@ import type { NextPage } from "next";
 import { useCallback, useEffect, useState } from "react";
 
 import Address from "../components/EthComponents/Address";
-import transcactor, { ContractTransactionType } from "../functions/transcactor";
+import transactor, { ContractTransactionType } from "../functions/transactor";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 
 const Debug: NextPage = () => {
@@ -22,7 +22,7 @@ const Debug: NextPage = () => {
   }, [YourContract]);
 
   const updateContractPurpose = async (): Promise<any> => {
-    const rcpt = await transcactor(YourContract?.setPurpose as ContractTransactionType, [purpose]);
+    const rcpt = await transactor(YourContract?.setPurpose as ContractTransactionType, [purpose]);
     console.log("rcpt: ", rcpt);
     setContractPurpose(purpose);
   };
