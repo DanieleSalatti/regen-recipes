@@ -12,13 +12,8 @@ import "openzeppelin-contracts/contracts/access/Ownable.sol";
 contract RFStorage is Ownable {
   event AddTokenSet(address manager, address tokenSet, uint256 version);
 
-  struct TokenSet {
-    address tokenSet;
-    uint256 version;
-  }
-
-  mapping(address => TokenSet[]) public tokenSets;
-  mapping(address => address) public tokenSetManagers;
+  mapping(address => address[]) public managerToTokenSets;
+  mapping(address => address) public tokenSetToManager;
 
   constructor(address _owner) payable {
     transferOwnership(_owner);
@@ -32,14 +27,16 @@ contract RFStorage is Ownable {
     require(_manager != address(0), "owner cannot be 0");
     require(_tokenSet != address(0), "tokenSet cannot be 0");
     require(_version != 0, "version cannot be 0");
-    require(tokenSetManagers[_tokenSet] == address(0), "TokenSet already exists");
+    require(tokenSetToManager[_tokenSet] == address(0), "TokenSet already exists");
 
-    TokenSet memory newTokenSet = TokenSet({ tokenSet: _tokenSet, version: _version });
-
-    tokenSets[_manager].push(newTokenSet);
-    tokenSetManagers[_tokenSet] = _manager;
+    managerToTokenSets[_manager].push(_tokenSet);
+    tokenSetToManager[_tokenSet] = _manager;
 
     emit AddTokenSet(_manager, _tokenSet, _version);
+  }
+
+  function getTokenSetsByManager(address _manager) public view returns (address[] memory) {
+    return managerToTokenSets[_manager];
   }
 
   receive() external payable {}

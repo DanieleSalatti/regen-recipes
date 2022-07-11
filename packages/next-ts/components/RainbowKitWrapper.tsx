@@ -29,9 +29,17 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
         jsonRpcProvider({
           rpc: (chain: Chain) => {
             if (chain.id === 42) {
+              // Kovan
               return {
                 http: "https://kovan.infura.io/v3/e23ef6f1da494103bf900b3734e228f7",
                 webSocket: "wss://kovan.infura.io/ws/v3/e23ef6f1da494103bf900b3734e228f7",
+              };
+            }
+            if (chain.id === 10) {
+              // Optimism
+              return {
+                http: "https://mainnet.optimism.io",
+                webSocket: "wss://ws-mainnet.optimism.io",
               };
             }
             return {
