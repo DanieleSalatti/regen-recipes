@@ -25,6 +25,7 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
       [...targedChains],
       [
         // alchemyProvider({ alchemyId: process.env.ALCHEMY_ID })
+        // TODO: inifura id from env
         jsonRpcProvider({
           rpc: (chain: Chain) => {
             if (chain.id === 42) {
