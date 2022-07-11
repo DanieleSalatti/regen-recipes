@@ -1,6 +1,6 @@
 import { Chain, chain } from "wagmi";
 
-import { YourContract__factory } from "../../contracts/contract-types";
+import { RFStorage__factory } from "../../contracts/contract-types";
 import foundryContracts from "../../contracts/foundry_contracts.json";
 
 /** ----------------------
@@ -8,7 +8,7 @@ import foundryContracts from "../../contracts/foundry_contracts.json";
  * inside ContractsConfig
  * ---------------------*/
 export const ContractsConfig = {
-  YourContract: { factory: YourContract__factory, json: foundryContracts },
+  RFStorage: { factory: RFStorage__factory, json: foundryContracts },
 } as const;
 
 /** ----------------------

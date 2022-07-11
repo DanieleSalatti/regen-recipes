@@ -28,7 +28,7 @@ contract RFStorage is Ownable {
     address _manager,
     address _tokenSet,
     uint256 _version
-  ) public onlyManagerContract {
+  ) public {
     require(_manager != address(0), "owner cannot be 0");
     require(_tokenSet != address(0), "tokenSet cannot be 0");
     require(_version != 0, "version cannot be 0");

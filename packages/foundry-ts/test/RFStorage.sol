@@ -2,9 +2,9 @@ pragma solidity >=0.8.0 <0.9.0;
 
 //SPDX-License-Identifier: MIT
 import "forge-std/Test.sol";
-import "../src/RFManager.sol";
+import "../src/RFStorage.sol";
 
-contract RFManagerTest is Test {
+contract RFStorageTest is Test {
   uint256 testNumber;
 
   // YourContract yc;

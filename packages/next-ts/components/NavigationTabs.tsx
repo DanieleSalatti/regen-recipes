@@ -11,7 +11,6 @@ import { BsViewList } from "react-icons/bs";
 const navigationTabs = [
   { tabName: "Home", pageName: "/", icon: <AiOutlineHome /> },
   { tabName: "New Set", pageName: "/new", icon: <VscAdd /> },
-  { tabName: "Debug Contracts", pageName: "/Debug", icon: <VscDebugAll /> },
 ];
 
 const NavigationTabs: React.FC = () => {

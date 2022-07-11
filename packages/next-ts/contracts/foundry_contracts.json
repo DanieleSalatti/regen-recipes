@@ -1,12 +1,9 @@
 {
-    "42": {
-        "contracts": {
-            "RFStorage": {
-                "address": "0xd732a6d9d309ff1e89b3e16104557fffea017ec5"
-            },
-            "RFManager": {
-                "address": "0x9466acc3561912e275d584d52e313c723fad13a1"
-            }
-        }
+  "42": {
+    "contracts": {
+      "RFStorage": {
+        "address": "0xaab1989634ab165730411d656c6a6a8ae151cc75"
+      }
     }
+  }
 }

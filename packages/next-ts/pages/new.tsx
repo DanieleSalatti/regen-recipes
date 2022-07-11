@@ -9,6 +9,7 @@ import { chain } from "wagmi";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 import { SetProtocolConfig } from "../config/setProtocolConfig";
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
+import transactor, { ContractTransactionType } from "../functions/transactor";
 
 type Token = {
   chainId: number;
@@ -51,6 +52,12 @@ const New: NextPage = () => {
 
   const SetJsInstance = new SetJs(SetJsConfig);
 
+  const RFStorage = useAppLoadContract({
+    contractName: "RFStorage",
+  });
+
+  console.log("RFStorage", RFStorage);
+
   useEffect(() => {
     fetch(`tokens.json`)
       .then((response) => response.json())
@@ -60,8 +67,19 @@ const New: NextPage = () => {
       });
   }, [provider.network.name]);
 
+  const storeNewSet = async (): Promise<any> => {
+    if (!address) {
+      return;
+    }
+    const rcpt = await transactor(RFStorage?.addTokenSet as ContractTransactionType, [address, newSetAddress, 2]);
+    console.log("rcpt: ", rcpt);
+  };
+
   useEffect(() => {
-    console.log("DASA NEW SET ADDRESS", newSetAddress);
+    if (newSetAddress !== "") {
+      console.log("DASA NEW SET ADDRESS", newSetAddress);
+      storeNewSet();
+    }
   }, [newSetAddress]);
 
   function getLabel({ name, symbol, logoURI }: Token) {

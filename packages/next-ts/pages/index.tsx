@@ -25,24 +25,14 @@ const Home: NextPage = () => {
   const { address, isConnecting } = useAccount();
   const { data } = useBalance({ addressOrName: address });
 
-  const YourContract = useAppLoadContract({
-    contractName: "YourContract",
-  });
-
-  const getPurpose = useCallback(async () => {
-    const purpose = await YourContract?.purpose();
-    setContractPurpose(purpose as string);
-  }, [YourContract]);
-
   useEffect(() => {
-    void getPurpose();
     fetch(`regens.json`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
         setRegens(data.people);
       });
-  }, [YourContract, getPurpose]);
+  }, []);
 
   return (
     <>

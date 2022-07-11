@@ -2,9 +2,9 @@
 import type { NextPage } from "next";
 import { useCallback, useEffect, useState } from "react";
 
-import Address from "../components/EthComponents/Address";
-import transactor, { ContractTransactionType } from "../functions/transactor";
-import useAppLoadContract from "../hooks/useAppLoadContract";
+import Address from "../../components/EthComponents/Address";
+import transactor, { ContractTransactionType } from "../../functions/transactor";
+import useAppLoadContract from "../../hooks/useAppLoadContract";
 
 const Debug: NextPage = () => {
   const [purpose, setPurpose] = useState<string>("");

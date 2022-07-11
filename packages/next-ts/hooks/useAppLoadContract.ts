@@ -24,8 +24,8 @@ const useAppLoadContract = ({ contractName }: IuseAppLoadContract) => {
   const { data: signerData } = useSigner();
   const provider = useProvider();
 
-  const { activeChain, chains } = useNetwork();
-  const chainId = Number(activeChain?.id);
+  const { chain, chains } = useNetwork();
+  const chainId = Number(chain?.id);
 
   const contractAddress =
     ContractsConfig[contractName]["json"][chainId] !== undefined
