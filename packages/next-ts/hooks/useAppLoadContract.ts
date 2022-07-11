@@ -38,7 +38,7 @@ const useAppLoadContract = ({ contractName }: IuseAppLoadContract) => {
     signerOrProvider: signerData,
   });
 
-  const checkDeplyedContracState = async () => {
+  const checkDeployedContracState = async () => {
     try {
       const deployedCode = await provider?.getCode(contractInstance.address);
       if (deployedCode !== "0x") {
@@ -60,12 +60,20 @@ const useAppLoadContract = ({ contractName }: IuseAppLoadContract) => {
   };
 
   useEffect(() => {
-    //     checking if signerData?.getAddress is loaded then create contract instance
+    // hecking if signerData?.getAddress is loaded then create contract instance
     if (signerData?.getAddress !== undefined) {
-      void checkDeplyedContracState();
+      void checkDeployedContracState();
     }
   }, [signerData?.getAddress]);
 
+  useEffect(() => {
+    // load new contract instance on chain change
+    if (chain !== undefined) {
+      void checkDeployedContracState();
+    }
+  }, [chain]);
+
   return contract;
 };
+
 export default useAppLoadContract;
