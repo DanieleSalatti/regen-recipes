@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface ICardProps {
   imgUrl: string;
   title: string;
@@ -5,8 +7,7 @@ interface ICardProps {
   link?: string;
   linkText?: string;
   cta: string;
-  ctaLink?: string;
-  ctaRoute?: string;
+  ctaLink: string;
 }
 
 export const Card: React.FC<any> = (props: ICardProps) => {
@@ -19,7 +20,9 @@ export const Card: React.FC<any> = (props: ICardProps) => {
         <h2 className="card-title">{`${props.title}`}</h2>
         <p>{`${props.description}`}</p>
         <div className="card-actions justify-end">
-          <button className="btn btn-primary">{`${props.cta}`}</button>
+          <Link href={props.ctaLink} className="btn btn-primary">
+            <a>{`${props.cta}`}</a>
+          </Link>
         </div>
       </div>
     </div>

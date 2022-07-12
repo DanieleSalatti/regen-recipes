@@ -6,7 +6,7 @@ const Layout: React.FC<any> = ({ children }) => {
   return (
     <div className="h-screen">
       <Header />
-      <div className="h-screen">{children}</div>
+      <div>{children}</div>
       <FaucetModal />
       <Footer />
     </div>

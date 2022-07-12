@@ -46,8 +46,7 @@ const Home: NextPage = () => {
                 title={regen.name}
                 description={regen.bio}
                 cta="View Sets"
-                ctaLink={regen.twitter}
-                ctaRoute={`/sets/${regen.address}`}
+                ctaLink={`/sets/${regen.address}`}
               />
             ))}
           </div>
