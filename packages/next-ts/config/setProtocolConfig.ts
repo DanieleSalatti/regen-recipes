@@ -10,6 +10,9 @@ export const SetProtocolConfig = (networkName: string) => {
       basicIssuanceModuleAddress: "0xe1B7e8D3B385A19173ECd7dEAeDD1368f8706263",
       streamingFeeModuleAddress: "0x6a7aE5124677314dc32C5ba3004CbFC9c7Febff0",
       tradeModuleAddress: "0x7215f38011C3e4058Ca3cF7d2b99033016EeFBD8",
+      debtIssuanceModuleV2Address: "0xda6D2Da01b7141Ba3232025DC45F192eAE5569DA",
+
+      exchangeIssuanceZeroExAddress: "0x01ecc782531ADCfB8C5a58A2C7FD544Ada946b81",
     },
     polygon: {},
     kovan: {

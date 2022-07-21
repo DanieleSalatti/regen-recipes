@@ -151,7 +151,7 @@ const New: NextPage = () => {
                 <td className="px-4 py-2">
                   <input
                     type="number"
-                    value={Number(newSetTokenPercentageList[index])}
+                    value={Number(newSetTokenPercentageList[index]) ?? 0}
                     onChange={(e) => {
                       const newValue = BigNumber.from(e.target.value);
                       const newPercentageList = newSetTokenPercentageList.map((percentage, i) =>

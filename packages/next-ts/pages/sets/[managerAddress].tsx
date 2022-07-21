@@ -1,7 +1,16 @@
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
-import { useAccount, useBalance, useProvider, useSigner, useNetwork } from "wagmi";
+import {
+  useAccount,
+  useBalance,
+  useProvider,
+  useSigner,
+  useNetwork,
+  useContractWrite,
+  useContractRead,
+  useContract,
+} from "wagmi";
 import { SetProtocolConfig } from "../../config/setProtocolConfig";
 import SetJs from "set.js";
 import useAppLoadContract from "../../hooks/useAppLoadContract";
@@ -9,6 +18,24 @@ import { BigNumber, ethers } from "ethers";
 import { Token } from "../../types/token";
 import React, { PureComponent } from "react";
 import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from "recharts";
+import EtherInput from "../../components/EthComponents/EtherInput";
+import Modal from "react-modal";
+
+import { ExchangeIssuanceZeroExABI } from "../../contracts/ExchangeIssuanceZeroEx.abi";
+import { SwapOrderPairs } from "set.js/dist/types/src/types";
+
+const customStyles = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+  },
+};
+
+Modal.setAppElement("#__next");
 
 export default function Sets() {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -16,9 +43,16 @@ export default function Sets() {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [sets, setSets] = useState<string[]>([]);
   const [setsDetails, setSetsDetails] = useState<any[]>([]);
+
+  const [buyTokenAddress, setBuyTokenAddress] = useState<string>("");
+  const [buyTokenQuantity, setBuyTokenQuantity] = useState<number>();
+
+  const [modalIsOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const provider = useProvider();
   const network = useNetwork();
+
+  const { address: address, isConnecting } = useAccount();
 
   const setProtocolConfig = SetProtocolConfig(network.chain?.name.toLowerCase() ?? "mainnet");
 
@@ -104,7 +138,7 @@ export default function Sets() {
           .map((allocation) => {
             return {
               name: allocation.tokenSymbol,
-              value: parseFloat(((allocation.totalValue / totalAllocationMonetaryValue) * 100).toFixed(0)),
+              value: (allocation.totalValue / totalAllocationMonetaryValue) * 100,
               priceEUR: allocation.priceEUR,
               priceUSD: allocation.priceUSD,
             };
@@ -115,13 +149,116 @@ export default function Sets() {
           ...setDetails,
           allocationData,
           prices,
+          address: sets[index],
         };
       })
     );
 
-    console.log("enrichedSetDetails", enrichedSetDetails);
-
     setSetsDetails(enrichedSetDetails);
+  }
+
+  const EIZEissueExactSetFromETH = useContractWrite({
+    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    contractInterface: ExchangeIssuanceZeroExABI,
+    functionName: "issueExactSetFromETH", // issueExactSetFromETH
+    args: [],
+  });
+
+  const EIZEInstance = useContract({
+    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    contractInterface: ExchangeIssuanceZeroExABI,
+    signerOrProvider: tempProvider,
+  });
+
+  async function buyToken() {
+    if (address === undefined || buyTokenAddress === undefined || buyTokenQuantity === undefined) {
+      console.log("missing address or buyTokenAddress or buyTokenQuantity", address, buyTokenAddress, buyTokenQuantity);
+      return;
+    }
+    console.log(
+      "buyToken",
+      ethers.utils.getAddress(buyTokenAddress),
+      ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether").toString(),
+      ethers.utils.getAddress(address)
+    );
+
+    const modules = await SetJsInstance.setToken.getModulesAsync(ethers.utils.getAddress(buyTokenAddress));
+
+    console.log("modules", modules);
+    const debtIssuanceModuleV2Address = modules.find(
+      (module) => module === setProtocolConfig["debtIssuanceModuleV2Address"]
+    );
+    console.log("debtIssuanceModuleV2Address", debtIssuanceModuleV2Address);
+    if (debtIssuanceModuleV2Address === undefined) {
+      return;
+    }
+
+    console.log("EIZEInstance", EIZEInstance);
+
+    const result = await EIZEInstance.getRequiredIssuanceComponents(
+      debtIssuanceModuleV2Address,
+      true, // isDebtIssuance
+      ethers.utils.getAddress(buyTokenAddress),
+      ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether")
+    );
+    console.log("result", result);
+
+    const WETHAddress = await EIZEInstance.WETH();
+
+    const orderPairs: SwapOrderPairs[] = result.components.map((component, index) => {
+      return {
+        fromToken: WETHAddress,
+        toToken: component,
+        rawAmount: result.positions[index].toString(),
+        ignore: false,
+      };
+    });
+
+    console.log("orderPairs", orderPairs);
+
+    const gasPrice = await SetJsInstance.utils.fetchGasPriceAsync("average");
+
+    console.log("gasPrice", gasPrice);
+
+    const swapQuotes = await SetJsInstance.utils.batchFetchSwapQuoteAsync(
+      orderPairs,
+      true, // useBuyAmount
+      buyTokenAddress,
+      SetJsInstance.setToken,
+      gasPrice
+    );
+
+    console.log("swapQuote", swapQuotes);
+
+    const totalCostInEth = swapQuotes
+      .reduce((a, b) => a.add(BigNumber.from(b.fromTokenAmount)), BigNumber.from(0))
+      .add(ethers.utils.parseUnits("0.00001", "ether"));
+
+    console.log("totalCostInEth", totalCostInEth.toString());
+
+    const totalGas = swapQuotes.reduce((a, b) => a + parseInt(b.gas), 0);
+
+    console.log("totalGas", totalGas);
+
+    const txRes = await EIZEissueExactSetFromETH.writeAsync({
+      args: [
+        ethers.utils.getAddress(buyTokenAddress),
+        ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether"),
+        swapQuotes.map((swapQuote) => swapQuote.calldata),
+        debtIssuanceModuleV2Address,
+        true, // isDebtIssuance
+      ],
+      overrides: {
+        from: ethers.utils.getAddress(address),
+        value: ethers.utils.parseUnits(totalCostInEth.toString(), "wei"),
+        //gasPrice: ethers.utils.parseUnits(gasPrice.toString(), "gwei"),
+        //gasLimit: totalGas,
+      },
+    });
+
+    // Reload the page - in the future redirect to "my sets"
+    getSetDetailsBatch();
+    setIsOpen(false);
   }
 
   useEffect(() => {
@@ -133,8 +270,6 @@ export default function Sets() {
     const radius = innerRadius + (outerRadius - innerRadius) * 2.2;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    console.log("renderCustomizedLabel", { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name });
 
     return (
       <text
@@ -153,68 +288,114 @@ export default function Sets() {
       <div className="m-2 mt-16">
         <h1 className="text-3xl font-bold mb-16 text-center">Sets</h1>
         {setsDetails &&
-          setsDetails.map((setDetails, index) => (
-            <div className="flex flex-col items-center justify-center" key={index}>
-              <div className="flex flex-col items-center justify-center">
-                <h2 className="text-2xl font-bold mb-2 text-center">{setDetails.name}</h2>
+          setsDetails
+            .sort((a, b) => b.totalSupply - a.totalSupply)
+            .map((setDetails, index) => (
+              <div className="flex flex-col items-center justify-center mb-32" key={index}>
                 <div className="flex flex-col items-center justify-center">
-                  <div className="grid grid-cols-3 gap-8">
-                    <div className="col-span-1">Symbol: {setDetails.symbol}</div>
-                    <div className="col-span-1">
-                      Total Supply: {parseFloat(ethers.utils.formatEther(setDetails.totalSupply.toString()))}
+                  <h2 className="text-2xl font-bold mb-2 text-center">{setDetails.name}</h2>
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="grid grid-cols-3 gap-8">
+                      <div className="col-span-1">Symbol: {setDetails.symbol}</div>
+                      <div className="col-span-1">
+                        Total Supply: {parseFloat(ethers.utils.formatEther(setDetails.totalSupply.toString()))}
+                      </div>
+                      <div className="col-span-1">Positions: {setDetails.positions.length}</div>
                     </div>
-                    <div className="col-span-1">Positions: {setDetails.positions.length}</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="col-span-1">
-                      <table className="table-auto w-full">
-                        <thead>
-                          <tr>
-                            <th className="px-4 py-2">Token</th>
-                            <th className="px-4 py-2">Value</th>
-                            <th className="px-4 py-2">Price (EUR)</th>
-                            <th className="px-4 py-2">Price (USD)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {setDetails.allocationData.map((allocation, index) => (
-                            <tr key={index}>
-                              <td className="border px-4 py-2">{allocation.name}</td>
-                              <td className="border px-4 py-2">{allocation.value}%</td>
-                              <td className="border px-4 py-2">{allocation.priceEUR}</td>
-                              <td className="border px-4 py-2">{allocation.priceUSD}</td>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="col-span-1">
+                        <table className="table-auto w-full">
+                          <thead>
+                            <tr>
+                              <th className="px-4 py-2">Token</th>
+                              <th className="px-4 py-2">Value</th>
+                              <th className="px-4 py-2">Price (EUR)</th>
+                              <th className="px-4 py-2">Price (USD)</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="col-span-1">
-                      <ResponsiveContainer width="100%" height="100%" minHeight={400} minWidth={400}>
-                        <PieChart width={400} height={400}>
-                          <Pie
-                            data={setDetails.allocationData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            label={renderCustomizedLabel}
-                            innerRadius={70}
-                            outerRadius={90}
-                            fill="#82ca9d">
-                            {setDetails.allocationData.map((entry, i) => {
-                              console.log("setDetails.allocationData", setDetails.allocationData);
-                              return <Cell key={`cell-${i}`} fill={COLORS[(i + index) % COLORS.length]} />;
-                            })}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
+                          </thead>
+                          <tbody>
+                            {setDetails.allocationData.map((allocation, index) => (
+                              <tr key={index}>
+                                <td className="border px-4 py-2">{allocation.name}</td>
+                                <td className="border px-4 py-2">{allocation.value}%</td>
+                                <td className="border px-4 py-2">{allocation.priceEUR}</td>
+                                <td className="border px-4 py-2">{allocation.priceUSD}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="col-span-1">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={275} minWidth={400}>
+                          <PieChart width={400} height={275}>
+                            <Pie
+                              data={setDetails.allocationData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              label={renderCustomizedLabel}
+                              innerRadius={70}
+                              outerRadius={90}
+                              fill="#82ca9d">
+                              {setDetails.allocationData.map((entry, i) => {
+                                return <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />;
+                              })}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="col-span-1">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setBuyTokenAddress(setDetails.address);
+                        setIsOpen(true);
+                      }}>
+                      Buy
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
       </div>
+      <Modal
+        isOpen={modalIsOpen}
+        // onAfterOpen={afterOpenModal}
+        onRequestClose={() => setIsOpen(false)}
+        style={customStyles}
+        contentLabel="Example Modal">
+        <div className="flex flex-col items-center justify-center">
+          <div className="grid grid-cols-2 gap-8">
+            <div className="col-span-1">
+              <input
+                type="number"
+                value={buyTokenQuantity || 0}
+                onChange={(e) => {
+                  setBuyTokenQuantity(parseFloat(e.target.value));
+                }}
+              />
+            </div>
+            <div className="col-span-1">
+              <button
+                className="btn btn-primary"
+                disabled={!buyTokenQuantity || buyTokenQuantity === 0}
+                onClick={() => {
+                  if (!buyTokenQuantity || buyTokenQuantity === 0) {
+                    return;
+                  }
+                  buyToken();
+                }}>
+                Buy
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }
