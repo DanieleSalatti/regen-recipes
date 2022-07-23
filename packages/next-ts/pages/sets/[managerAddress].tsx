@@ -10,6 +10,8 @@ import {
   useContractWrite,
   useContractRead,
   useContract,
+  erc20ABI,
+  useFeeData,
 } from "wagmi";
 import { SetProtocolConfig } from "../../config/setProtocolConfig";
 import SetJs from "set.js";
@@ -44,10 +46,13 @@ export default function Sets() {
   const [sets, setSets] = useState<string[]>([]);
   const [setsDetails, setSetsDetails] = useState<any[]>([]);
 
-  const [buyTokenAddress, setBuyTokenAddress] = useState<string>("");
-  const [buyTokenQuantity, setBuyTokenQuantity] = useState<number>();
+  const [currentTokenAddress, setCurrentTokenAddress] = useState<string>("");
+  const [currentTokenQuantity, setCurrentTokenQuantity] = useState<number>();
+  const [currentTokenBalance, setCurrentTokenBalance] = useState<BigNumber>();
 
-  const [modalIsOpen, setIsOpen] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalIsSell, setModalIsSell] = useState(false);
+
   const router = useRouter();
   const provider = useProvider();
   const network = useNetwork();
@@ -70,9 +75,15 @@ export default function Sets() {
   });
 
   async function getSets() {
-    const sets = await RFStorage?.getTokenSetsByManager(router.query.managerAddress);
-    setSets(sets);
+    const sets = await RFStorage?.getTokenSetsByManager(router.query.managerAddress as string);
+    setSets(sets || []);
   }
+
+  const mainnetGasPrice = useFeeData({
+    formatUnits: "gwei",
+    chainId: 1,
+    watch: true,
+  });
 
   useEffect(() => {
     fetch(`/tokens.json`)
@@ -84,7 +95,7 @@ export default function Sets() {
   }, [provider.network.name]);
 
   useEffect(() => {
-    if (RFStorage === undefined || RFStorage.signer === null) {
+    if (RFStorage === undefined || RFStorage.signer === null || RFStorage.signer.getAddress === undefined) {
       return;
     }
     console.log("RFStorage", RFStorage);
@@ -97,6 +108,20 @@ export default function Sets() {
     }
     void getSets();
   }, [router.query.managerAddress]);
+
+  async function getBalance() {
+    const contract = new ethers.Contract(currentTokenAddress, erc20ABI, provider);
+    const balance = (await contract.balanceOf(address)).toString();
+    console.log("balance", balance);
+    setCurrentTokenBalance(balance);
+  }
+
+  useEffect(() => {
+    if (currentTokenAddress === "" || address === undefined) {
+      return;
+    }
+    void getBalance();
+  }, [currentTokenAddress]);
 
   async function getSetDetailsBatch() {
     if (sets.length === 0) {
@@ -160,7 +185,14 @@ export default function Sets() {
   const EIZEissueExactSetFromETH = useContractWrite({
     addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
-    functionName: "issueExactSetFromETH", // issueExactSetFromETH
+    functionName: "issueExactSetFromETH",
+    args: [],
+  });
+
+  const EIZEredeemExactSetForETH = useContractWrite({
+    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    contractInterface: ExchangeIssuanceZeroExABI,
+    functionName: "redeemExactSetForETH",
     args: [],
   });
 
@@ -171,18 +203,23 @@ export default function Sets() {
   });
 
   async function buyToken() {
-    if (address === undefined || buyTokenAddress === undefined || buyTokenQuantity === undefined) {
-      console.log("missing address or buyTokenAddress or buyTokenQuantity", address, buyTokenAddress, buyTokenQuantity);
+    if (address === undefined || currentTokenAddress === undefined || currentTokenQuantity === undefined) {
+      console.log(
+        "missing address or currentTokenAddress or currentTokenQuantity",
+        address,
+        currentTokenAddress,
+        currentTokenQuantity
+      );
       return;
     }
     console.log(
       "buyToken",
-      ethers.utils.getAddress(buyTokenAddress),
-      ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether").toString(),
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether").toString(),
       ethers.utils.getAddress(address)
     );
 
-    const modules = await SetJsInstance.setToken.getModulesAsync(ethers.utils.getAddress(buyTokenAddress));
+    const modules = await SetJsInstance.setToken.getModulesAsync(ethers.utils.getAddress(currentTokenAddress));
 
     console.log("modules", modules);
     const debtIssuanceModuleV2Address = modules.find(
@@ -198,8 +235,8 @@ export default function Sets() {
     const result = await EIZEInstance.getRequiredIssuanceComponents(
       debtIssuanceModuleV2Address,
       true, // isDebtIssuance
-      ethers.utils.getAddress(buyTokenAddress),
-      ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether")
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether")
     );
     console.log("result", result);
 
@@ -216,34 +253,41 @@ export default function Sets() {
 
     console.log("orderPairs", orderPairs);
 
-    const gasPrice = await SetJsInstance.utils.fetchGasPriceAsync("average");
+    const chainGasPrice = await SetJsInstance.utils.fetchGasPriceAsync("fast");
+
+    const gasPrice =
+      network.chain?.id === 10
+        ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
+        : chainGasPrice;
 
     console.log("gasPrice", gasPrice);
 
     const swapQuotes = await SetJsInstance.utils.batchFetchSwapQuoteAsync(
       orderPairs,
       true, // useBuyAmount
-      buyTokenAddress,
+      currentTokenAddress,
       SetJsInstance.setToken,
       gasPrice
     );
 
     console.log("swapQuote", swapQuotes);
 
-    const totalCostInEth = swapQuotes
-      .reduce((a, b) => a.add(BigNumber.from(b.fromTokenAmount)), BigNumber.from(0))
-      .add(ethers.utils.parseUnits("0.00001", "ether"));
+    let totalCostInEth = swapQuotes.reduce((a, b) => a.add(BigNumber.from(b.fromTokenAmount)), BigNumber.from(0));
+    //.add(ethers.utils.parseUnits("0.01", "ether"));
+
+    totalCostInEth = totalCostInEth.add(totalCostInEth.div(BigNumber.from(100)).mul(BigNumber.from(5)));
 
     console.log("totalCostInEth", totalCostInEth.toString());
 
-    const totalGas = swapQuotes.reduce((a, b) => a + parseInt(b.gas), 0);
+    //const totalGas = swapQuotes.reduce((a, b) => a + parseInt(b.gas), 0);
+    //console.log("totalGas", totalGas);
 
-    console.log("totalGas", totalGas);
+    const gasLimit = network.chain?.id === 10 ? 1000000 : 21000;
 
     const txRes = await EIZEissueExactSetFromETH.writeAsync({
       args: [
-        ethers.utils.getAddress(buyTokenAddress),
-        ethers.utils.parseUnits(buyTokenQuantity.toString(), "ether"),
+        ethers.utils.getAddress(currentTokenAddress),
+        ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
         swapQuotes.map((swapQuote) => swapQuote.calldata),
         debtIssuanceModuleV2Address,
         true, // isDebtIssuance
@@ -251,14 +295,126 @@ export default function Sets() {
       overrides: {
         from: ethers.utils.getAddress(address),
         value: ethers.utils.parseUnits(totalCostInEth.toString(), "wei"),
-        //gasPrice: ethers.utils.parseUnits(gasPrice.toString(), "gwei"),
-        //gasLimit: totalGas,
+        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
+        gasLimit: gasLimit,
       },
     });
 
     // Reload the page - in the future redirect to "my sets"
     getSetDetailsBatch();
-    setIsOpen(false);
+    setModalIsOpen(false);
+  }
+
+  async function sellToken() {
+    if (address === undefined || currentTokenAddress === undefined || currentTokenQuantity === undefined) {
+      console.log(
+        "missing address or currentTokenAddress or currentTokenQuantity",
+        address,
+        currentTokenAddress,
+        currentTokenQuantity
+      );
+      return;
+    }
+    console.log(
+      "sellToken",
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether").toString(),
+      ethers.utils.getAddress(address)
+    );
+
+    const modules = await SetJsInstance.setToken.getModulesAsync(ethers.utils.getAddress(currentTokenAddress));
+
+    console.log("modules", modules);
+
+    const debtIssuanceModuleV2Address = modules.find(
+      (module) => module === setProtocolConfig["debtIssuanceModuleV2Address"]
+    );
+
+    console.log("debtIssuanceModuleV2Address", debtIssuanceModuleV2Address);
+
+    if (debtIssuanceModuleV2Address === undefined) {
+      return;
+    }
+
+    console.log("EIZEInstance", EIZEInstance);
+
+    const result = await EIZEInstance.getRequiredIssuanceComponents(
+      debtIssuanceModuleV2Address,
+      true, // isDebtIssuance
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether")
+    );
+    console.log("result", result);
+
+    const WETHAddress = await EIZEInstance.WETH();
+
+    const orderPairs: SwapOrderPairs[] = result.components.map((component, index) => {
+      return {
+        fromToken: component,
+        toToken: WETHAddress,
+        rawAmount: result.positions[index].toString(),
+        ignore: false,
+      };
+    });
+
+    console.log("orderPairs", orderPairs);
+
+    const chainGasPrice = await SetJsInstance.utils.fetchGasPriceAsync("fast");
+
+    const gasPrice =
+      network.chain?.id === 10
+        ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
+        : chainGasPrice;
+
+    const gasLimit = network.chain?.id === 10 ? 1000000 : 21000;
+
+    console.log("gasPrice", gasPrice);
+    console.log(
+      "ethers.utils.parseUnits(gasPrice.toString(), gwei)",
+      ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei")
+    );
+
+    const swapQuotes = await SetJsInstance.utils.batchFetchSwapQuoteAsync(
+      orderPairs,
+      false, // useBuyAmount
+      currentTokenAddress,
+      SetJsInstance.setToken,
+      gasPrice
+    );
+
+    console.log("swapQuote", swapQuotes);
+
+    const totalCostInEth = swapQuotes.reduce((a, b) => a.add(BigNumber.from(b.fromTokenAmount)), BigNumber.from(0));
+
+    console.log("totalCostInEth", totalCostInEth.toString());
+
+    // const totalGas = swapQuotes.reduce((a, b) => a + parseInt(b.gas), 0);
+    const token = new ethers.Contract(currentTokenAddress, erc20ABI, tempProvider.getSigner());
+
+    const txApprove = await token.approve(
+      setProtocolConfig["exchangeIssuanceZeroExAddress"],
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether")
+    );
+
+    const txRes = await EIZEredeemExactSetForETH.writeAsync({
+      args: [
+        ethers.utils.getAddress(currentTokenAddress),
+        ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
+        totalCostInEth, // How much ETH we want back at minimum
+        swapQuotes.map((swapQuote) => swapQuote.calldata),
+        debtIssuanceModuleV2Address,
+        true, // isDebtIssuance
+      ],
+      overrides: {
+        from: ethers.utils.getAddress(address),
+        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
+        gasLimit: gasLimit,
+      },
+    });
+
+    // Reload the page - in the future redirect to "my sets"
+    getSetDetailsBatch();
+    setModalIsOpen(false);
   }
 
   useEffect(() => {
@@ -349,15 +505,29 @@ export default function Sets() {
                   </div>
                 </div>
                 <div className="flex flex-col items-center justify-center">
-                  <div className="col-span-1">
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        setBuyTokenAddress(setDetails.address);
-                        setIsOpen(true);
-                      }}>
-                      Buy
-                    </button>
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="col-span-1">
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                          setCurrentTokenAddress(setDetails.address);
+                          setModalIsSell(false);
+                          setModalIsOpen(true);
+                        }}>
+                        Buy
+                      </button>
+                    </div>
+                    <div className="col-span-1">
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                          setCurrentTokenAddress(setDetails.address);
+                          setModalIsSell(true);
+                          setModalIsOpen(true);
+                        }}>
+                        Sell
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -366,31 +536,36 @@ export default function Sets() {
       <Modal
         isOpen={modalIsOpen}
         // onAfterOpen={afterOpenModal}
-        onRequestClose={() => setIsOpen(false)}
+        onRequestClose={() => setModalIsOpen(false)}
         style={customStyles}
         contentLabel="Example Modal">
         <div className="flex flex-col items-center justify-center">
+          Your current balance: {parseFloat(ethers.utils.formatEther(currentTokenBalance || 0)).toFixed(4)}
           <div className="grid grid-cols-2 gap-8">
             <div className="col-span-1">
               <input
                 type="number"
-                value={buyTokenQuantity || 0}
+                value={currentTokenQuantity || 0}
                 onChange={(e) => {
-                  setBuyTokenQuantity(parseFloat(e.target.value));
+                  setCurrentTokenQuantity(parseFloat(e.target.value));
                 }}
               />
             </div>
             <div className="col-span-1">
               <button
                 className="btn btn-primary"
-                disabled={!buyTokenQuantity || buyTokenQuantity === 0}
+                disabled={!currentTokenQuantity || currentTokenQuantity === 0}
                 onClick={() => {
-                  if (!buyTokenQuantity || buyTokenQuantity === 0) {
+                  if (!currentTokenQuantity || currentTokenQuantity === 0) {
                     return;
                   }
-                  buyToken();
+                  if (modalIsSell) {
+                    sellToken();
+                  } else {
+                    buyToken();
+                  }
                 }}>
-                Buy
+                {modalIsSell ? "Sell" : "Buy"}
               </button>
             </div>
           </div>
