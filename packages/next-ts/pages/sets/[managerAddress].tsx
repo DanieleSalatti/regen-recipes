@@ -255,10 +255,10 @@ export default function Sets() {
 
     const chainGasPrice = await SetJsInstance.utils.fetchGasPriceAsync("fast");
 
-    const gasPrice =
+    const gasPrice = /*
       network.chain?.id === 10
         ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
-        : chainGasPrice;
+        :*/ chainGasPrice;
 
     console.log("gasPrice", gasPrice);
 
@@ -300,7 +300,6 @@ export default function Sets() {
       },
     });
 
-    // Reload the page - in the future redirect to "my sets"
     getSetDetailsBatch();
     setModalIsOpen(false);
   }
@@ -338,7 +337,7 @@ export default function Sets() {
 
     console.log("EIZEInstance", EIZEInstance);
 
-    const result = await EIZEInstance.getRequiredIssuanceComponents(
+    const result = await EIZEInstance.getRequiredRedemptionComponents(
       debtIssuanceModuleV2Address,
       true, // isDebtIssuance
       ethers.utils.getAddress(currentTokenAddress),
@@ -349,6 +348,8 @@ export default function Sets() {
     const WETHAddress = await EIZEInstance.WETH();
 
     const orderPairs: SwapOrderPairs[] = result.components.map((component, index) => {
+      console.log("component", component);
+      console.log("positions[index]", result.positions[index].toString());
       return {
         fromToken: component,
         toToken: WETHAddress,
@@ -361,10 +362,10 @@ export default function Sets() {
 
     const chainGasPrice = await SetJsInstance.utils.fetchGasPriceAsync("fast");
 
-    const gasPrice =
+    const gasPrice = /*
       network.chain?.id === 10
         ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
-        : chainGasPrice;
+        :*/ chainGasPrice;
 
     const gasLimit = network.chain?.id === 10 ? 1000000 : 21000;
 
@@ -384,7 +385,9 @@ export default function Sets() {
 
     console.log("swapQuote", swapQuotes);
 
-    const totalCostInEth = swapQuotes.reduce((a, b) => a.add(BigNumber.from(b.fromTokenAmount)), BigNumber.from(0));
+    let totalCostInEth = swapQuotes.reduce((a, b) => a.add(BigNumber.from(b.toTokenAmount)), BigNumber.from(0));
+
+    totalCostInEth = totalCostInEth.sub(totalCostInEth.div(BigNumber.from(100)).mul(BigNumber.from(5)));
 
     console.log("totalCostInEth", totalCostInEth.toString());
 
