@@ -43,6 +43,7 @@ const New: NextPage = () => {
     ...setProtocolConfig,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const SetJsInstance = new SetJs(SetJsConfig);
 
   const RFStorage = useAppLoadContract({
@@ -56,7 +57,11 @@ const New: NextPage = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         setTokens(data.tokens[provider.network.name === "homestead" ? "mainnet" : provider.network.name]);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   }, [provider.network.name]);
 
@@ -70,11 +75,11 @@ const New: NextPage = () => {
 
   useEffect(() => {
     if (newSetAddress !== "") {
-      storeNewSet();
+      void storeNewSet();
     }
   }, [newSetAddress]);
 
-  function getLabel({ name, symbol, logoURI }: Token) {
+  function getLabel({ name, symbol, logoURI }: Token): JSX.Element {
     return (
       <div style={{ alignItems: "center", display: "flex" }}>
         <span style={{ fontSize: 18, marginRight: "0.5em" }}>
@@ -87,11 +92,11 @@ const New: NextPage = () => {
     );
   }
 
-  function isTokenInList(token: Token, list: Token[]) {
+  function isTokenInList(token: Token, list: Token[]): boolean {
     return list.some((t) => t.address === token.address && t.chainId === token.chainId);
   }
 
-  function addToken(token: Token) {
+  function addToken(token: Token): void {
     if (isTokenInList(token, newSetTokenList)) {
       return;
     }
@@ -105,14 +110,14 @@ const New: NextPage = () => {
         <h1 className="text-3xl font-bold mb-16 text-center">Create New Set</h1>
         <div className="grid grid-cols-3 gap-8">
           <div className="col-span-1">
-            Name: <input type="text" value={newSetName} onChange={(e) => setNewSetName(e.target.value)} />
+            Name: <input type="text" value={newSetName} onChange={(e): void => setNewSetName(e.target.value)} />
           </div>
           <div className="col-span-1">
             Description:{" "}
-            <input type="text" value={newSetDescription} onChange={(e) => setNewSetDescription(e.target.value)} />
+            <input type="text" value={newSetDescription} onChange={(e): void => setNewSetDescription(e.target.value)} />
           </div>
           <div className="col-span-1">
-            Symbol: <input type="text" value={newSetSymbol} onChange={(e) => setNewSetSymbol(e.target.value)} />
+            Symbol: <input type="text" value={newSetSymbol} onChange={(e): void => setNewSetSymbol(e.target.value)} />
           </div>
         </div>
       </div>
@@ -122,11 +127,11 @@ const New: NextPage = () => {
           isSearchable={false}
           options={tokens}
           isMulti={false}
-          isOptionSelected={(option) => false}
-          onChange={(option) => {
+          isOptionSelected={(option): boolean => false}
+          onChange={(option): void => {
             if (option /* && !isArray(option)*/) {
               console.log("Selected option:", option);
-              addToken(option as Token);
+              addToken(option);
             }
           }}
           placeholder="💶 Select a token"
@@ -153,7 +158,7 @@ const New: NextPage = () => {
                   <input
                     type="number"
                     value={Number(newSetTokenPercentageList[index]) ?? 0}
-                    onChange={(e) => {
+                    onChange={(e): void => {
                       const newValue = BigNumber.from(e.target.value);
                       const newPercentageList = newSetTokenPercentageList.map((percentage, i) =>
                         i === index ? newValue : percentage
@@ -167,7 +172,7 @@ const New: NextPage = () => {
                 </td>
                 <td className="px-4 py-2">
                   <button
-                    onClick={() => {
+                    onClick={(): void => {
                       const newTokenList = newSetTokenList.filter((_, i) => i !== index);
                       const newTokenPercentageList = newSetTokenPercentageList.filter((_, i) => i !== index);
                       setNewSetTokenList(newTokenList);
@@ -200,63 +205,67 @@ const New: NextPage = () => {
             newSetTokenList.length === 0 ||
             address === undefined
           }
-          onClick={async () => {
-            console.log(newSetTokenList);
-            console.log(newSetTokenPercentageList);
-            if (address === undefined) {
-              return;
-            }
-            console.log("onclick provider", provider);
-            console.log("onclick provider", provider);
+          onClick={(): void => {
+            // eslint-disable-next-line @typescript-eslint/require-await
+            void (async (): Promise<void> => {
+              console.log(newSetTokenList);
+              console.log(newSetTokenPercentageList);
+              if (address === undefined) {
+                return;
+              }
+              console.log("onclick provider", provider);
+              console.log("onclick provider", provider);
 
-            const tokenSetList = newSetTokenList.map((token) => token.address);
+              const tokenSetList = newSetTokenList.map((token) => token.address);
 
-            console.log("tokenSetList", tokenSetList);
-            console.log("newSetTokenPercentageList", newSetTokenPercentageList);
-            console.log("network.chain?.name", network.chain?.name.toLowerCase());
-            console.log("config", setProtocolConfig);
-            console.log("modules", setProtocolConfig["basicIssuanceModuleAddress"]);
-            console.log("address", address);
-            console.log("newSetName", newSetName);
-            console.log("newSetSymbol", newSetSymbol);
+              console.log("tokenSetList", tokenSetList);
+              console.log("newSetTokenPercentageList", newSetTokenPercentageList);
+              console.log("network.chain?.name", network.chain?.name.toLowerCase());
+              console.log("config", setProtocolConfig);
+              console.log("modules", setProtocolConfig["basicIssuanceModuleAddress"]);
+              console.log("address", address);
+              console.log("newSetName", newSetName);
+              console.log("newSetSymbol", newSetSymbol);
 
-            SetJsInstance.setToken
-              .createAsync(
-                tokenSetList,
-                newSetTokenPercentageList,
-                [setProtocolConfig["basicIssuanceModuleAddress"]],
-                address,
-                newSetName,
-                newSetSymbol
-              )
-              .then(async (result) => {
-                const eventSignature = "SetTokenCreated(address,address,string,string)";
-                const rcpt = await result.wait();
+              SetJsInstance.setToken
+                .createAsync(
+                  tokenSetList,
+                  newSetTokenPercentageList,
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                  [setProtocolConfig["basicIssuanceModuleAddress"]],
+                  address,
+                  newSetName,
+                  newSetSymbol
+                )
+                .then(async (result) => {
+                  const eventSignature = "SetTokenCreated(address,address,string,string)";
+                  const rcpt = await result.wait();
 
-                // Implementing my own logic because the one from set.js doesn't seem to work
-                // TODO: contribute better logic to set.js
-                rcpt.events?.forEach((event) => {
-                  if (
-                    event.eventSignature === eventSignature &&
-                    event.transactionHash === result.hash &&
-                    event.address === setProtocolConfig["setTokenCreatorAddress"] &&
-                    event.args &&
-                    event.args[1] === address
-                  ) {
-                    setNewSetAddress(event.args[0]);
-                  }
+                  // Implementing my own logic because the one from set.js doesn't seem to work
+                  // TODO: contribute better logic to set.js
+                  rcpt.events?.forEach((event) => {
+                    if (
+                      event.eventSignature === eventSignature &&
+                      event.transactionHash === result.hash &&
+                      event.address === setProtocolConfig["setTokenCreatorAddress"] &&
+                      event.args &&
+                      event.args[1] === address
+                    ) {
+                      setNewSetAddress(event.args[0] as string);
+                    }
+                  });
+                })
+                .catch((error) => {
+                  console.log("ERROR", error);
+                })
+                .finally(() => {
+                  setNewSetTokenList([]);
+                  setNewSetTokenPercentageList([]);
+                  setNewSetName("");
+                  setNewSetDescription("");
+                  setNewSetSymbol("");
                 });
-              })
-              .catch((error) => {
-                console.log("ERROR", error);
-              })
-              .finally(() => {
-                setNewSetTokenList([]);
-                setNewSetTokenPercentageList([]);
-                setNewSetName("");
-                setNewSetDescription("");
-                setNewSetSymbol("");
-              });
+            });
           }}>
           Create Set
         </button>

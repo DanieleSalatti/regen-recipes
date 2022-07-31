@@ -16,7 +16,7 @@ import {
 import { SetProtocolConfig } from "../../config/setProtocolConfig";
 import SetJs from "set.js";
 import useAppLoadContract from "../../hooks/useAppLoadContract";
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, BigNumberish, ethers } from "ethers";
 import { Token } from "../../types/token";
 import React, { PureComponent } from "react";
 import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from "recharts";
@@ -40,7 +40,7 @@ const customStyles = {
 
 Modal.setAppElement("#__next");
 
-export default function Sets() {
+export default function Sets(): JSX.Element {
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   const [tokens, setTokens] = useState<Token[]>([]);
@@ -69,13 +69,14 @@ export default function Sets() {
     ...setProtocolConfig,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const SetJsInstance = new SetJs(SetJsConfig);
 
   const RFStorage = useAppLoadContract({
     contractName: "RFStorage",
   });
 
-  async function getSets() {
+  async function getSets(): Promise<void> {
     const sets = await RFStorage?.getTokenSetsByManager(router.query.managerAddress as string);
     setSets(sets || []);
   }
@@ -91,8 +92,10 @@ export default function Sets() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         setTokens(data.tokens[provider.network.name === "homestead" ? "mainnet" : provider.network.name]);
-      });
+      })
+      .catch((error) => console.log(error));
   }, [provider.network.name]);
 
   useEffect(() => {
@@ -110,11 +113,11 @@ export default function Sets() {
     void getSets();
   }, [router.query.managerAddress]);
 
-  async function getBalance() {
+  async function getBalance(): Promise<void> {
     const contract = new ethers.Contract(currentTokenAddress, erc20ABI, provider);
     const balance = (await contract.balanceOf(address)).toString();
     console.log("balance", balance);
-    setCurrentTokenBalance(balance);
+    setCurrentTokenBalance(balance as BigNumber);
   }
 
   useEffect(() => {
@@ -124,12 +127,12 @@ export default function Sets() {
     void getBalance();
   }, [currentTokenAddress]);
 
-  async function getSetDetailsBatch() {
+  async function getSetDetailsBatch(): Promise<void> {
     if (sets.length === 0) {
       return;
     }
     const setsDetails = await SetJsInstance.setToken.batchFetchSetDetailsAsync(sets, [
-      setProtocolConfig["basicIssuanceModuleAddress"],
+      setProtocolConfig["basicIssuanceModuleAddress"] as string,
     ]);
 
     const enrichedSetDetails = await Promise.all(
@@ -203,7 +206,7 @@ export default function Sets() {
     signerOrProvider: tempProvider,
   });
 
-  async function buyToken() {
+  async function buyToken(): Promise<void> {
     if (address === undefined || currentTokenAddress === undefined || currentTokenQuantity === undefined) {
       console.log(
         "missing address or currentTokenAddress or currentTokenQuantity",
@@ -301,11 +304,11 @@ export default function Sets() {
       },
     });
 
-    getSetDetailsBatch();
+    await getSetDetailsBatch();
     setModalIsOpen(false);
   }
 
-  async function sellToken() {
+  async function sellToken(): Promise<void> {
     if (address === undefined || currentTokenAddress === undefined || currentTokenQuantity === undefined) {
       console.log(
         "missing address or currentTokenAddress or currentTokenQuantity",
@@ -417,7 +420,7 @@ export default function Sets() {
     });
 
     // Reload the page - in the future redirect to "my sets"
-    getSetDetailsBatch();
+    await getSetDetailsBatch();
     setModalIsOpen(false);
   }
 
@@ -426,7 +429,28 @@ export default function Sets() {
   }, [sets]);
 
   const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
+
+  type PieChartData = {
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    percent: number;
+    index: number;
+    name: string;
+  };
+
+  function renderCustomizedLabel({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+    name,
+  }: PieChartData): JSX.Element {
     const radius = innerRadius + (outerRadius - innerRadius) * 2.2;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -441,7 +465,7 @@ export default function Sets() {
         {`${name} ${(percent * 100).toFixed(0)}%`}
       </text>
     );
-  };
+  }
 
   return (
     <main className="flex flex-col items-center justify-center">
@@ -458,7 +482,8 @@ export default function Sets() {
                     <div className="grid grid-cols-3 gap-8">
                       <div className="col-span-1">Symbol: {setDetails.symbol}</div>
                       <div className="col-span-1">
-                        Total Supply: {parseFloat(ethers.utils.formatEther(setDetails.totalSupply.toString()))}
+                        Total Supply:{" "}
+                        {parseFloat(ethers.utils.formatEther(setDetails.totalSupply.toString() as BigNumberish))}
                       </div>
                       <div className="col-span-1">Positions: {setDetails.positions.length}</div>
                     </div>
@@ -513,8 +538,8 @@ export default function Sets() {
                     <div className="col-span-1">
                       <button
                         className="btn btn-primary"
-                        onClick={() => {
-                          setCurrentTokenAddress(setDetails.address);
+                        onClick={(): void => {
+                          setCurrentTokenAddress(setDetails.address as string);
                           setModalIsSell(false);
                           setModalIsOpen(true);
                         }}>
@@ -524,8 +549,8 @@ export default function Sets() {
                     <div className="col-span-1">
                       <button
                         className="btn btn-primary"
-                        onClick={() => {
-                          setCurrentTokenAddress(setDetails.address);
+                        onClick={(): void => {
+                          setCurrentTokenAddress(setDetails.address as string);
                           setModalIsSell(true);
                           setModalIsOpen(true);
                         }}>
@@ -540,7 +565,7 @@ export default function Sets() {
       <Modal
         isOpen={modalIsOpen}
         // onAfterOpen={afterOpenModal}
-        onRequestClose={() => setModalIsOpen(false)}
+        onRequestClose={(): void => setModalIsOpen(false)}
         style={customStyles}
         contentLabel="Example Modal">
         <div className="flex flex-col items-center justify-center">
@@ -550,7 +575,7 @@ export default function Sets() {
               <input
                 type="number"
                 value={currentTokenQuantity || 0}
-                onChange={(e) => {
+                onChange={(e): void => {
                   setCurrentTokenQuantity(parseFloat(e.target.value));
                 }}
               />
@@ -559,14 +584,14 @@ export default function Sets() {
               <button
                 className="btn btn-primary"
                 disabled={!currentTokenQuantity || currentTokenQuantity === 0}
-                onClick={() => {
+                onClick={(): void => {
                   if (!currentTokenQuantity || currentTokenQuantity === 0) {
                     return;
                   }
                   if (modalIsSell) {
-                    sellToken();
+                    void sellToken();
                   } else {
-                    buyToken();
+                    void buyToken();
                   }
                 }}>
                 {modalIsSell ? "Sell" : "Buy"}

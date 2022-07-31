@@ -30,7 +30,10 @@ const Home: NextPage = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        setRegens(data.people);
+        setRegens(data.people as Regen[]);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   }, []);
 
