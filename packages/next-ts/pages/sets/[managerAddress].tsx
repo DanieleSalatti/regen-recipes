@@ -25,6 +25,7 @@ import Modal from "react-modal";
 
 import { ExchangeIssuanceZeroExABI } from "../../contracts/ExchangeIssuanceZeroEx.abi";
 import { SwapOrderPairs } from "set.js/dist/types/src/types";
+import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
 
 const customStyles = {
   content: {
@@ -61,7 +62,7 @@ export default function Sets() {
 
   const setProtocolConfig = SetProtocolConfig(network.chain?.name.toLowerCase() ?? "mainnet");
 
-  const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const tempProvider = new ethers.providers.Web3Provider(window.ethereum as ExternalProvider | JsonRpcFetchFunc);
 
   const SetJsConfig = {
     ethersProvider: tempProvider,

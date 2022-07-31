@@ -11,6 +11,7 @@ import { SetProtocolConfig } from "../config/setProtocolConfig";
 import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import transactor, { ContractTransactionType } from "../functions/transactor";
 import { Token } from "../types/token";
+import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
 
 const New: NextPage = () => {
   const [tokens, setTokens] = useState<Token[]>([]);
@@ -35,7 +36,7 @@ const New: NextPage = () => {
   console.log("provider", provider);
   console.log("setProtocolConfig", setProtocolConfig);
 
-  const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const tempProvider = new ethers.providers.Web3Provider(window.ethereum as ExternalProvider | JsonRpcFetchFunc);
 
   const SetJsConfig = {
     ethersProvider: tempProvider,
