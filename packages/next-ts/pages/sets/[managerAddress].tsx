@@ -88,12 +88,11 @@ export default function Sets(): JSX.Element {
   });
 
   useEffect(() => {
-    fetch(`/tokens.json`)
+    fetch("https://raw.githubusercontent.com/DanieleSalatti/ReFi-Tokens/main/refi.tokenlist.json")
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        setTokens(data.tokens[provider.network.name === "homestead" ? "mainnet" : provider.network.name]);
+        setTokens(data.tokens.filter((i) => i.chainId === network.chain?.id));
       })
       .catch((error) => console.log(error));
   }, [provider.network.name]);
@@ -187,21 +186,21 @@ export default function Sets(): JSX.Element {
   }
 
   const EIZEissueExactSetFromETH = useContractWrite({
-    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
     functionName: "issueExactSetFromETH",
     args: [],
   });
 
   const EIZEredeemExactSetForETH = useContractWrite({
-    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
     functionName: "redeemExactSetForETH",
     args: [],
   });
 
   const EIZEInstance = useContract({
-    addressOrName: SetJsConfig["exchangeIssuanceZeroExAddress"],
+    addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
     signerOrProvider: tempProvider,
   });

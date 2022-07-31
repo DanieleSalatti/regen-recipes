@@ -92,7 +92,6 @@ const New: NextPage = () => {
       <div className="m-2 mt-16">
         <TokenSelect
           onChange={(option): void => {
-            console.log("DASA DASA Selected option:", option);
             addToken(option);
           }}
           chainId={network.chain?.id}
