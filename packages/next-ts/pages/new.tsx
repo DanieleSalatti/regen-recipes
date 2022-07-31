@@ -182,7 +182,7 @@ const New: NextPage = () => {
               console.log("newSetTokenPercentageList", newSetTokenPercentageList);
               console.log("network.chain?.name", network.chain?.name.toLowerCase());
               console.log("config", setProtocolConfig);
-              console.log("modules", setProtocolConfig["basicIssuanceModuleAddress"]);
+              console.log("modules", setProtocolConfig["exchangeIssuanceZeroExAddress"]);
               console.log("address", address);
               console.log("newSetName", newSetName);
               console.log("newSetSymbol", newSetSymbol);
@@ -192,7 +192,7 @@ const New: NextPage = () => {
                   tokenSetList,
                   newSetTokenPercentageList,
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                  [setProtocolConfig["basicIssuanceModuleAddress"]],
+                  [setProtocolConfig["exchangeIssuanceZeroExAddress"]],
                   address,
                   newSetName,
                   newSetSymbol

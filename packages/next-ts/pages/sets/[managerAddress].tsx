@@ -478,6 +478,7 @@ export default function Sets(): JSX.Element {
               <div className="flex flex-col items-center justify-center mb-32" key={index}>
                 <div className="flex flex-col items-center justify-center">
                   <h2 className="text-2xl font-bold mb-2 text-center">{setDetails.name}</h2>
+                  <h3 className="text-xl font-semibold mb-2 text-center">{setDetails.address}</h3>
                   <div className="flex flex-col items-center justify-center">
                     <div className="grid grid-cols-3 gap-8">
                       <div className="col-span-1">Symbol: {setDetails.symbol}</div>

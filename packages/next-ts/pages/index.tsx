@@ -17,9 +17,7 @@ type Regen = {
   github: string;
 };
 
-import useAppLoadContract from "../hooks/useAppLoadContract";
 const Home: NextPage = () => {
-  const [contractPurpose, setContractPurpose] = useState<string>("");
   const [regens, setRegens] = useState<Regen[]>([]);
 
   const { address, isConnecting } = useAccount();
