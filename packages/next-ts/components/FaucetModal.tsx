@@ -9,19 +9,19 @@ const FaucetModal: React.FC = () => {
   const [toAddress, setToAddress] = useState<string | null>(null);
   const [isFaucetVisible, setIsFaucetVisible] = useState<boolean>(false);
 
-  const { activeChain, chains, error, isLoading, pendingChainId, switchNetwork } = useNetwork();
+  const { chain, chains } = useNetwork();
 
-  const { data } = useAccount();
+  const { address } = useAccount();
   useEffect(() => {
-    setToAddress(data?.address as string);
+    setToAddress(address as string);
 
     // check localhost and enable faucet modal
-    if (["Hardhat", "Localhost"].includes(activeChain?.name as string)) {
+    if (["Hardhat", "Localhost"].includes(chain?.name as string)) {
       setIsFaucetVisible(true);
     } else {
       setIsFaucetVisible(false);
     }
-  }, [data?.address, activeChain?.name]);
+  }, [address, chain]);
 
   const onReceiveFaucet = async (): Promise<any> => {
     const localProvider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
@@ -29,7 +29,7 @@ const FaucetModal: React.FC = () => {
     const balance = await burnerSigner.getBalance();
     console.log("balance: ", balance.toString());
     if (ethValue > 0) {
-      await burnerSigner.sendTransaction({ to: data?.address, value: ethers.utils.parseEther(`${ethValue}`) });
+      await burnerSigner.sendTransaction({ to: address, value: ethers.utils.parseEther(`${ethValue}`) });
       window.location.reload();
     }
   };
