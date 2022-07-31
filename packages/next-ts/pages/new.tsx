@@ -12,6 +12,7 @@ import { MetaMaskConnector } from "wagmi/connectors/metaMask";
 import transactor, { ContractTransactionType } from "../functions/transactor";
 import { Token } from "../types/token";
 import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
+import TokenSelect from "../components/EthComponents/TokenSelect";
 
 const New: NextPage = () => {
   const [tokens, setTokens] = useState<Token[]>([]);
@@ -52,19 +53,6 @@ const New: NextPage = () => {
 
   console.log("RFStorage", RFStorage);
 
-  useEffect(() => {
-    fetch(`tokens.json`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        setTokens(data.tokens[provider.network.name === "homestead" ? "mainnet" : provider.network.name]);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [provider.network.name]);
-
   const storeNewSet = async (): Promise<any> => {
     if (!address) {
       return;
@@ -79,24 +67,12 @@ const New: NextPage = () => {
     }
   }, [newSetAddress]);
 
-  function getLabel({ name, symbol, logoURI }: Token): JSX.Element {
-    return (
-      <div style={{ alignItems: "center", display: "flex" }}>
-        <span style={{ fontSize: 18, marginRight: "0.5em" }}>
-          <img src={logoURI} alt={name} />
-        </span>
-        <span style={{ fontSize: 14 }}>
-          {symbol} - {name}
-        </span>
-      </div>
-    );
-  }
-
   function isTokenInList(token: Token, list: Token[]): boolean {
     return list.some((t) => t.address === token.address && t.chainId === token.chainId);
   }
 
   function addToken(token: Token): void {
+    console.log("addToken", token);
     if (isTokenInList(token, newSetTokenList)) {
       return;
     }
@@ -122,21 +98,13 @@ const New: NextPage = () => {
         </div>
       </div>
       <div className="m-2 mt-16">
-        <Select
-          formatOptionLabel={getLabel}
-          isSearchable={false}
-          options={tokens}
-          isMulti={false}
-          isOptionSelected={(option): boolean => false}
+        <TokenSelect
           onChange={(option): void => {
-            if (option /* && !isArray(option)*/) {
-              console.log("Selected option:", option);
-              addToken(option);
-            }
+            console.log("DASA DASA Selected option:", option);
+            addToken(option);
           }}
-          placeholder="💶 Select a token"
-          // styles={headerSelectStyles}
-        />
+          chainId={network.chain?.id}
+          localProvider={provider}></TokenSelect>
       </div>
       <div className="m-2">
         <table className="w-full">

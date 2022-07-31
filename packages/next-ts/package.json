@@ -34,6 +34,7 @@
     "react-toastify": "^9.0.4",
     "recharts": "^2.1.12",
     "sass": "^1.52.2",
+    "searchico": "^1.2.1",
     "set.js": "^0.6.0",
     "vercel": "^25.1.0",
     "wagmi": "^0.5.9"

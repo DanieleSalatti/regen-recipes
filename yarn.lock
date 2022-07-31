@@ -2553,6 +2553,7 @@ __metadata:
     react-toastify: ^9.0.4
     recharts: ^2.1.12
     sass: ^1.52.2
+    searchico: ^1.2.1
     set.js: ^0.6.0
     shx: ^0.3.4
     tailwindcss: ^3.0.24
@@ -15120,6 +15121,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"merge@npm:^1.2.0":
+  version: 1.2.1
+  resolution: "merge@npm:1.2.1"
+  checksum: 2298c4fdcf64561f320b92338681f7ffcafafb579a6e294066ae3e7bd10ae25df363903d2f028072733b9f79a1f75d2b999aef98ad5d73de13641da39cda0913
+  languageName: node
+  linkType: hard
+
 "merkle-patricia-tree@npm:3.0.0":
   version: 3.0.0
   resolution: "merkle-patricia-tree@npm:3.0.0"
@@ -19473,6 +19481,15 @@ __metadata:
   dependencies:
     pbkdf2: ^3.0.3
   checksum: e09cf253b0974171bbcb77fa46405bb07cb8e241e2851fc5f23b38526a33105f0f7748a4d60027642f40bd4518ada30b1dce5005c05d17a25cbcefad371d4259
+  languageName: node
+  linkType: hard
+
+"searchico@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "searchico@npm:1.2.1"
+  dependencies:
+    merge: ^1.2.0
+  checksum: c544e454ecea0f3f5c06d47e5731533560b033b7131edb360da1168fc13196f60b6cc3ceba5b243802d98372084756bc480748400ba75861c1e5a2cf7d8d7420
   languageName: node
   linkType: hard
 
