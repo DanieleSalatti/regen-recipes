@@ -6,6 +6,7 @@
     "dev": "next dev",
     "contracts:build": "yarn shx rm -rf './contracts/contract-types' && yarn shx mkdir -p ./contracts/contract-types &&  yarn shx cp -r '../foundry-ts/generated/contract-types' './contracts'",
     "build": "next build",
+    "export": "next export",
     "start": "next start",
     "lint": "next lint",
     "vercel:deploy": "vercel deploy",
