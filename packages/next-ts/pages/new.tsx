@@ -15,8 +15,6 @@ import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
 import TokenSelect from "../components/EthComponents/TokenSelect";
 
 const New: NextPage = () => {
-  const [tokens, setTokens] = useState<Token[]>([]);
-
   const [newSetTokenList, setNewSetTokenList] = useState<Token[]>([]);
   const [newSetTokenPercentageList, setNewSetTokenPercentageList] = useState<BigNumber[]>([]);
   const [newSetTokenAllocationTotal, setNewSetTokenAllocationTotal] = useState<BigNumber>(BigNumber.from(0));
@@ -26,16 +24,10 @@ const New: NextPage = () => {
   const [newSetAddress, setNewSetAddress] = useState<string>("");
 
   const { address: address, isConnecting } = useAccount();
-  const { data } = useBalance({ addressOrName: address });
   const provider = useProvider();
-  const signer = useSigner();
   const network = useNetwork();
 
   const setProtocolConfig = SetProtocolConfig(network.chain?.name.toLowerCase() ?? "mainnet");
-
-  console.log("address", address);
-  console.log("provider", provider);
-  console.log("setProtocolConfig", setProtocolConfig);
 
   const tempProvider = new ethers.providers.Web3Provider(window.ethereum as ExternalProvider | JsonRpcFetchFunc);
 
