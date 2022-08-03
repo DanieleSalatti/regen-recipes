@@ -17,7 +17,7 @@ import "set-protocol-v2/contracts/interfaces/IStreamingFeeModule.sol";
 
 import "./interfaces/IExchangeIssuanceZeroEx.sol";
 
-contract Cuoco is Ownable {
+contract Chef is Ownable {
   RFStorage public rfStorage;
   IExchangeIssuanceZeroEx public exchangeIssuanceZeroEx;
 
@@ -26,7 +26,21 @@ contract Cuoco is Ownable {
   ITradeModule public tradeModule;
   IStreamingFeeModule public streamingFeeModule;
 
-  // event AddTokenSet(address manager, address tokenSet, uint256 version);
+  event ExchangeIssue(
+    address indexed _recipient, // The recipient address of the issued SetTokens
+    ISetToken indexed _setToken, // The issued SetToken
+    IERC20 indexed _inputToken, // The address of the input asset(ERC20/ETH) used to issue the SetTokens
+    uint256 _amountInputToken, // The amount of input tokens used for issuance
+    uint256 _amountSetIssued // The amount of SetTokens received by the recipient
+  );
+
+  event ExchangeRedeem(
+    address indexed _recipient, // The recipient adress of the output tokens obtained for redemption
+    ISetToken indexed _setToken, // The redeemed SetToken
+    IERC20 indexed _outputToken, // The address of output asset(ERC20/ETH) received by the recipient
+    uint256 _amountSetRedeemed, // The amount of SetTokens redeemed for output tokens
+    uint256 _amountOutputToken // The amount of output tokens received by the recipient
+  );
 
   constructor(address _owner) payable {
     transferOwnership(_owner);
@@ -100,8 +114,48 @@ contract Cuoco is Ownable {
     // Add tok storage
     rfStorage.addTokenSet(_manager, tokenSet);
 
-    // TODO: emit event!
-
     return tokenSet;
+  }
+
+  function issueExactSetFromETH(
+    ISetToken _setToken,
+    uint256 _amountSetToken,
+    bytes[] memory _componentQuotes,
+    address _issuanceModule,
+    bool _isDebtIssuance
+  ) external payable returns (uint256) {
+    uint256 ret = exchangeIssuanceZeroEx.issueExactSetFromETH(
+      _setToken,
+      _amountSetToken,
+      _componentQuotes,
+      _issuanceModule,
+      _isDebtIssuance
+    );
+
+    emit ExchangeIssue(msg.sender, _setToken, address(0), 0, ret);
+
+    return ret;
+  }
+
+  function redeemExactSetForETH(
+    ISetToken _setToken,
+    uint256 _amountSetToken,
+    uint256 _minEthReceive,
+    bytes[] memory _componentQuotes,
+    address _issuanceModule,
+    bool _isDebtIssuance
+  ) external returns (uint256) {
+    uint256 ret = exchangeIssuanceZeroEx.redeemExactSetForETH(
+      _setToken,
+      _amountSetToken,
+      _minEthReceive,
+      _componentQuotes,
+      _issuanceModule,
+      _isDebtIssuance
+    );
+
+    emit ExchangeRedeem(msg.sender, _setToken, address(0), 0, ret);
+
+    return ret;
   }
 }

@@ -2530,6 +2530,7 @@ __metadata:
     "@uniswap/v3-core": ^1.0.1
     "@uniswap/v3-sdk": ^3.8.3
     autoprefixer: ^10.4.7
+    chart.js: ^3.9.0
     daisyui: ^2.15.2
     debug-eth-contract: ^0.0.4
     dotenv: ^16.0.1
@@ -2562,6 +2563,7 @@ __metadata:
     rc-collapse: ^3.3.1
     react: 18.1.0
     react-blockies: ^1.4.1
+    react-chartjs-2: ^4.3.1
     react-copy-to-clipboard: ^5.1.0
     react-dom: 18.1.0
     react-hook-form: ^7.33.1
@@ -2593,7 +2595,6 @@ __metadata:
     lint-staged: ^12.4.1
     prettier: ^2.6.2
     prettier-plugin-solidity: ^1.0.0-beta.19
-    react-select: ^5.4.0
     sass: ^1.51.0
     shx: ^0.3.4
     ts-node: ^10.7.0
@@ -6950,6 +6951,13 @@ __metadata:
   version: 0.0.2
   resolution: "charenc@npm:0.0.2"
   checksum: 81dcadbe57e861d527faf6dd3855dc857395a1c4d6781f4847288ab23cffb7b3ee80d57c15bba7252ffe3e5e8019db767757ee7975663ad2ca0939bb8fcaf2e5
+  languageName: node
+  linkType: hard
+
+"chart.js@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "chart.js@npm:3.9.0"
+  checksum: 12ee2264a33da2d1fd0ed1d0969c47ca9b4128a126cd22d0823e9369201a33bf1833bc929509696d13fe2464d6d7278ad3307e5a2ef61fa3edc30a27c2940f58
   languageName: node
   linkType: hard
 
@@ -18846,6 +18854,16 @@ __metadata:
   peerDependencies:
     react: ">=15.0.0"
   checksum: 87139fc2cc682d34ff8633c58ce96f89826cc3127499b623fb1d8c99dd8e1fe21055750a051933ffc500ca9c88aa017930deae963ffc635135c02907e5d75e22
+  languageName: node
+  linkType: hard
+
+"react-chartjs-2@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "react-chartjs-2@npm:4.3.1"
+  peerDependencies:
+    chart.js: ^3.5.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 574d12cc43b9b4a0f1e04cc692982e16ef7083c03da2a8a9fc2180fe9bcadc793008f81d8f4eec5465925eff84c95d7c523cb74376858b363ae75a83bb3c2a5d
   languageName: node
   linkType: hard
 

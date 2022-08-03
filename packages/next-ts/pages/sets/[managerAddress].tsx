@@ -1,6 +1,6 @@
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   useAccount,
   useBalance,
@@ -18,14 +18,16 @@ import SetJs from "set.js";
 import useAppLoadContract from "../../hooks/useAppLoadContract";
 import { BigNumber, BigNumberish, ethers } from "ethers";
 import { Token } from "../../types/token";
-import React, { PureComponent } from "react";
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer } from "recharts";
-import EtherInput from "../../components/EthComponents/EtherInput";
 import Modal from "react-modal";
 
 import { ExchangeIssuanceZeroExABI } from "../../contracts/ExchangeIssuanceZeroEx.abi";
 import { SwapOrderPairs } from "set.js/dist/types/src/types";
 import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
+
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+import { Doughnut } from "react-chartjs-2";
 
 const customStyles = {
   content: {
@@ -430,40 +432,52 @@ export default function Sets(): JSX.Element {
   const RADIAN = Math.PI / 180;
 
   type PieChartData = {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    percent: number;
-    index: number;
-    name: string;
+    labels: string[];
+    datasets: [
+      {
+        label: string;
+        data: number[];
+        backgroundColor: string[];
+        borderColor: string[];
+        borderWidth: number;
+      }
+    ];
   };
 
-  function renderCustomizedLabel({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-    index,
-    name,
-  }: PieChartData): JSX.Element {
-    const radius = innerRadius + (outerRadius - innerRadius) * 2.2;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  function createGraphData(allocations: any): PieChartData {
+    let labels: string[] = [];
+    let values: number[] = [];
 
-    return (
-      <text
-        x={x}
-        y={y}
-        fill={COLORS[index % COLORS.length]}
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central">
-        {`${name} ${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+    allocations.forEach((token, index) => {
+      labels.push(token.name);
+      values.push(token.value);
+    });
+
+    console.log("DASA", {
+      labels,
+      datasets: [
+        {
+          label: "Allocations",
+          data: values,
+          backgroundColor: COLORS,
+          borderColor: COLORS,
+          borderWidth: 1,
+        },
+      ],
+    });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Allocations",
+          data: values,
+          backgroundColor: COLORS,
+          borderColor: COLORS,
+          borderWidth: 1,
+        },
+      ],
+    };
   }
 
   return (
@@ -510,25 +524,8 @@ export default function Sets(): JSX.Element {
                           </tbody>
                         </table>
                       </div>
-                      <div className="col-span-1">
-                        <ResponsiveContainer width="100%" height="100%" minHeight={275} minWidth={400}>
-                          <PieChart width={400} height={275}>
-                            <Pie
-                              data={setDetails.allocationData}
-                              dataKey="value"
-                              nameKey="name"
-                              cx="50%"
-                              cy="50%"
-                              label={renderCustomizedLabel}
-                              innerRadius={70}
-                              outerRadius={90}
-                              fill="#82ca9d">
-                              {setDetails.allocationData.map((entry, i) => {
-                                return <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />;
-                              })}
-                            </Pie>
-                          </PieChart>
-                        </ResponsiveContainer>
+                      <div className="col-span-1 w-64 h-64">
+                        <Doughnut data={createGraphData(setDetails.allocationData)} id={index.toString()} />
                       </div>
                     </div>
                   </div>
