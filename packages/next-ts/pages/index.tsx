@@ -1,8 +1,5 @@
-import { BigNumberish } from "ethers";
-import { formatEther } from "ethers/lib/utils";
 import type { NextPage } from "next";
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useBalance } from "wagmi";
 import { Card } from "../components/Card";
 
@@ -36,24 +33,22 @@ const Home: NextPage = () => {
   }, []);
 
   return (
-    <>
-      <main className="flex flex-col items-center justify-center m-2 lg:mx-4">
-        <div className="m-2">
-          <div className="grid grid-cols-3 gap-16">
-            {regens.map((regen) => (
-              <Card
-                key={regen.name}
-                imgUrl={regen.avatarURI}
-                title={regen.name}
-                description={regen.bio}
-                cta="View Sets"
-                ctaLink={`/sets/${regen.address}`}
-              />
-            ))}
-          </div>
+    <main className="flex flex-col items-center justify-center m-2 lg:mx-4">
+      <div className="m-2">
+        <div className="grid grid-cols-3 gap-16">
+          {regens.map((regen) => (
+            <Card
+              key={regen.name}
+              imgUrl={regen.avatarURI}
+              title={regen.name}
+              description={regen.bio}
+              cta="View Sets"
+              ctaLink={`/sets/${regen.address}`}
+            />
+          ))}
         </div>
-      </main>
-    </>
+      </div>
+    </main>
   );
 };
 

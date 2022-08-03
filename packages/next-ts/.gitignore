@@ -16,3 +16,6 @@ typechain-types/
 .next/
 .yarn
 .vercel
+
+build-DEC
+build-DEC/
