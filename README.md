@@ -1,5 +1,9 @@
 # 🏗 Scaffold-Eth-next Typescript
 
+## Optimism Solarpunk Index
+
+0x9810B9BfcAd6a9cEE06bd5CDCB9Fb16e6AE2994B
+
 ## Typescript
 
 This is the typescript repo of scaffold.eth with foundry, rainbowkit , wagmi hooks and nextjs.
@@ -24,7 +28,7 @@ Running the app
    ```bash
    yarn scafold:help
    ```
-1. install foundry and  project dependencies
+1. install foundry and project dependencies
 
    ```bash
    yarn install

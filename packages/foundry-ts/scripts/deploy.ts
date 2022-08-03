@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 
 import { NETWORKS } from "@scaffold-eth/common/src/constants/networks";
-import { TNetworkNames } from "@scaffold-eth/common/src/models/TNetworkNames";
+import { TNetworkNames, NETWORK_NAME_TO_ID } from "@scaffold-eth/common/src/models/TNetworkNames";
 import chalk from "chalk";
 import dotenv from "dotenv";
 import { ethers } from "ethers";
@@ -140,7 +140,7 @@ async function run(): Promise<any> {
     }
 
     for (const contract of DEPLOY_CONTRACTS) {
-      await deploy(contract.contractName, { args: [...contract.args] });
+      await deploy(contract.contractName, { args: [...contract.args[NETWORK_NAME_TO_ID[network]]] });
     }
   } catch (error) {
     if (network === "localhost") {

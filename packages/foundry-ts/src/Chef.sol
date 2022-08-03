@@ -26,6 +26,13 @@ contract Chef is Ownable {
   ITradeModule public tradeModule;
   IStreamingFeeModule public streamingFeeModule;
 
+  uint256 public maxManagerFee; // 1% (1% = 1e16, 100% = 1e18)
+  uint256 public managerIssueFee;
+  uint256 public managerRedeemFee;
+  address public feeRecipient;
+  uint256 public maxStreamingFeePercentage; // Max streaming fee maanager commits to using (1% = 1e16, 100% = 1e18)
+  uint256 public streamingFeePercentage; // Percent of Set accruing to manager annually (1% = 1e16, 100% = 1e18)
+
   event ExchangeIssue(
     address indexed _recipient, // The recipient address of the issued SetTokens
     ISetToken indexed _setToken, // The issued SetToken
@@ -42,7 +49,23 @@ contract Chef is Ownable {
     uint256 _amountOutputToken // The amount of output tokens received by the recipient
   );
 
-  constructor(address _owner) payable {
+  constructor(
+    address _owner,
+    uint256 _maxManagerFee,
+    uint256 _managerIssueFee,
+    uint256 _managerRedeemFee,
+    uint256 _maxStreamingFeePercentage,
+    uint256 _streamingFeePercentage,
+    address _feeRecipient
+  ) payable {
+    maxManagerFee = _maxManagerFee; // 1%
+    managerIssueFee = _managerIssueFee; // 0.25%
+    managerRedeemFee = _managerRedeemFee; // 0.25%
+    maxStreamingFeePercentage = _maxStreamingFeePercentage; // 4%
+    streamingFeePercentage = _streamingFeePercentage; // 1%
+
+    feeRecipient = _feeRecipient;
+
     transferOwnership(_owner);
   }
 
@@ -70,6 +93,30 @@ contract Chef is Ownable {
     streamingFeeModule = IStreamingFeeModule(_streamingFeeModule);
   }
 
+  function SetFeeRecipient(address _feeRecipient) public onlyOwner {
+    feeRecipient = _feeRecipient;
+  }
+
+  function SetMaxManagerFee(uint256 _maxManagerFee) public onlyOwner {
+    maxManagerFee = _maxManagerFee;
+  }
+
+  function SetManagerIssueFee(uint256 _managerIssueFee) public onlyOwner {
+    managerIssueFee = _managerIssueFee;
+  }
+
+  function SetManagerRedeemFee(uint256 _managerRedeemFee) public onlyOwner {
+    managerRedeemFee = _managerRedeemFee;
+  }
+
+  function SetMaxStreamingFeePercentage(uint256 _maxStreamingFeePercentage) public onlyOwner {
+    maxStreamingFeePercentage = _maxStreamingFeePercentage;
+  }
+
+  function SetStreamingFeePercentage(uint256 _streamingFeePercentage) public onlyOwner {
+    streamingFeePercentage = _streamingFeePercentage;
+  }
+
   function createSet(
     address[] memory _components,
     int256[] memory _units,
@@ -95,28 +142,38 @@ contract Chef is Ownable {
 
     debtIssuanceModuleV2.initialize(
       tokenSet,
-      100000000000000000, // 1%
-      2500000000000000, // 0.25%
-      2500000000000000, // 0.25%
-      _manager,
+      maxManagerFee,
+      managerIssueFee,
+      managerRedeemFee,
+      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
       0x0000000000000000000000000000000000000000
     );
 
     IStreamingFeeModule.FeeState feeState = IStreamingFeeModule.FeeState(
-      _manager,
-      400000000000000000, // Max streaming fee maanager commits to using (1% = 1e16, 100% = 1e18)
-      10000000000000000, // Percent of Set accruing to manager annually (1% = 1e16, 100% = 1e18)
+      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
+      maxStreamingFeePercentage,
+      streamingFeePercentage,
       0 // Timestamp last streaming fee was accrued
     );
 
     streamingFeeModule.initialize(tokenSet);
 
-    // Add tok storage
+    // Add to storage
     rfStorage.addTokenSet(_manager, tokenSet);
 
     return tokenSet;
   }
 
+  /**
+   * Issues an exact amount of SetTokens for given amount of ETH.
+   * The excess amount of tokens is returned in an equivalent amount of ether.
+   *
+   * @param _setToken              Address of the SetToken to be issued
+   * @param _amountSetToken        Amount of SetTokens to issue
+   * @param _componentQuotes       The encoded 0x transactions to execute
+   *
+   * @return amountEthReturn       Amount of ether returned to the caller
+   */
   function issueExactSetFromETH(
     ISetToken _setToken,
     uint256 _amountSetToken,
@@ -137,6 +194,19 @@ contract Chef is Ownable {
     return ret;
   }
 
+  /**
+   * Redeems an exact amount of SetTokens for ETH.
+   * The SetToken must be approved by the sender to this contract.
+   *
+   * @param _setToken             Address of the SetToken being redeemed
+   * @param _amountSetToken       Amount SetTokens to redeem
+   * @param _minEthReceive        Minimum amount of Eth to receive
+   * @param _componentQuotes      The encoded 0x transactions execute
+   * @param _issuanceModule       Address of issuance Module to use
+   * @param _isDebtIssuance       Flag indicating wether given issuance module is a debt issuance module
+   *
+   * @return outputAmount         Amount of output tokens sent to the caller
+   */
   function redeemExactSetForETH(
     ISetToken _setToken,
     uint256 _amountSetToken,
@@ -157,5 +227,51 @@ contract Chef is Ownable {
     emit ExchangeRedeem(msg.sender, _setToken, address(0), 0, ret);
 
     return ret;
+  }
+
+  /**
+   * Returns component positions required for issuance
+   *
+   * @param _issuanceModule    Address of issuance Module to use
+   * @param _isDebtIssuance    Flag indicating wether given issuance module is a debt issuance module
+   * @param _setToken          Set token to issue
+   * @param _amountSetToken    Amount of set token to issue
+   */
+  function getRequiredIssuanceComponents(
+    address _issuanceModule,
+    bool _isDebtIssuance,
+    ISetToken _setToken,
+    uint256 _amountSetToken
+  ) public view returns (address[] memory components, uint256[] memory positions) {
+    return
+      exchangeIssuanceZeroEx.getRequiredIssuanceComponents(
+        _issuanceModule,
+        _isDebtIssuance,
+        _setToken,
+        _amountSetToken
+      );
+  }
+
+  /**
+   * Returns component positions required for Redemption
+   *
+   * @param _issuanceModule    Address of issuance Module to use
+   * @param _isDebtIssuance    Flag indicating wether given issuance module is a debt issuance module
+   * @param _setToken          Set token to issue
+   * @param _amountSetToken    Amount of set token to issue
+   */
+  function getRequiredRedemptionComponents(
+    address _issuanceModule,
+    bool _isDebtIssuance,
+    ISetToken _setToken,
+    uint256 _amountSetToken
+  ) public view returns (address[] memory components, uint256[] memory positions) {
+    return
+      exchangeIssuanceZeroEx.getRequiredRedemptionComponents(
+        _issuanceModule,
+        _isDebtIssuance,
+        _setToken,
+        _amountSetToken
+      );
   }
 }
