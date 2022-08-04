@@ -96,9 +96,9 @@ envConfig({ path: "../next-ts/.env" });
  * this loads all the tasks from the tasks folder
  */
 if (process.env.BUILDING !== "true") {
-    glob.sync("./tasks/**/*.ts").forEach((file: string) => {
-        require(path.resolve(file));
-    });
+  glob.sync("./tasks/**/*.ts").forEach((file: string) => {
+    require(path.resolve(file));
+  });
 }
 
 /**
@@ -107,115 +107,115 @@ if (process.env.BUILDING !== "true") {
 console.log("HARDHAT_TARGET_NETWORK: ", process.env.HARDHAT_TARGET_NETWORK);
 
 function getRemappings() {
-    return fs
-        .readFileSync("remappings.txt", "utf8")
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => line.trim().split("="));
+  return fs
+    .readFileSync("remappings.txt", "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.trim().split("="));
 }
 
 /**
  * loads network list and config from '@scaffold-eth/common/src
  */
 const networks = {
-    ...getNetworks({
-        accounts: {
-            mnemonic: getMnemonic(),
-        },
-    }),
-    localhost: {
-        url: "http://localhost:8545",
+  ...getNetworks({
+    accounts: {
+      mnemonic: getMnemonic(),
     },
+  }),
+  localhost: {
+    url: "http://localhost:8545",
+  },
 };
 
 /**
  * See {@link hardhatNamedAccounts} to define named accounts
  */
 const namedAccounts = hardhatNamedAccounts as {
-    [name: string]: string | number | { [network: string]: null | number | string };
+  [name: string]: string | number | { [network: string]: null | number | string };
 };
 
 export const config: HardhatUserConfig = {
-    preprocess: {
-        // eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
-        eachLine: (hre) => ({
-            transform: (line: string) => {
-                if (line.match(/^\s*import /i)) {
-                    getRemappings().forEach(([find, replace]) => {
-                        if (line.match('"' + find)) {
-                            line = line.replace('"' + find, '"' + replace);
-                        }
-                    });
-                }
-                return line;
+  preprocess: {
+    // eachLine: removeConsoleLog((hre) => hre.network.name !== "hardhat" && hre.network.name !== "localhost"),
+    eachLine: (hre) => ({
+      transform: (line: string) => {
+        if (line.match(/^\s*import /i)) {
+          getRemappings().forEach(([find, replace]) => {
+            if (line.match('"' + find)) {
+              line = line.replace('"' + find, '"' + replace);
+            }
+          });
+        }
+        return line;
+      },
+    }),
+  },
+  defaultNetwork: process.env.HARDHAT_TARGET_NETWORK,
+  namedAccounts: namedAccounts,
+  networks: networks,
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.10",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 250,
+          },
+          outputSelection: {
+            "*": {
+              "*": ["storageLayout"],
             },
-        }),
-    },
-    defaultNetwork: process.env.HARDHAT_TARGET_NETWORK,
-    namedAccounts: namedAccounts,
-    networks: networks,
-    solidity: {
-        compilers: [
-            {
-                version: "0.8.10",
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 250,
-                    },
-                    outputSelection: {
-                        "*": {
-                            "*": ["storageLayout"],
-                        },
-                    },
-                },
-            },
-        ],
-    },
-    mocha: {
-        bail: false,
-        allowUncaught: false,
-        require: ["ts-node/register"],
-        timeout: 30000,
-        slow: 9900,
-        reporter: process.env.GITHUB_ACTIONS === "true" ? "mocha-junit-reporter" : "spec",
-        reporterOptions: {
-            mochaFile: "testresult.xml",
-            toConsole: true,
+          },
         },
+      },
+    ],
+  },
+  mocha: {
+    bail: false,
+    allowUncaught: false,
+    require: ["ts-node/register"],
+    timeout: 30000,
+    slow: 9900,
+    reporter: process.env.GITHUB_ACTIONS === "true" ? "mocha-junit-reporter" : "spec",
+    reporterOptions: {
+      mochaFile: "testresult.xml",
+      toConsole: true,
     },
-    watcher: {
-        "auto-compile": {
-            tasks: ["compile"],
-            files: ["./contracts"],
-            verbose: false,
-        },
-        test: {
-            tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
-            files: ["./test/**/*"],
-            verbose: true,
-        },
+  },
+  watcher: {
+    "auto-compile": {
+      tasks: ["compile"],
+      files: ["./contracts"],
+      verbose: false,
     },
-    gasReporter: {
-        coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-        currency: "USD",
+    test: {
+      tasks: [{ command: "test", params: { testFiles: ["{path}"] } }],
+      files: ["./test/**/*"],
+      verbose: true,
     },
-    dodoc: {
-        runOnCompile: false,
-        debugMode: false,
-        keepFileStructure: true,
-        freshOutput: true,
-        outputDir: "./generated/docs",
-        include: ["contracts"],
-    },
-    paths: {
-        cache: "./generated/cache",
-        artifacts: "./generated/artifacts",
-        deployments: "./generated/deployments",
-        sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
-    },
-    typechain: {
-        outDir: "./generated/contract-types",
-    },
+  },
+  gasReporter: {
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    currency: "EUR",
+  },
+  dodoc: {
+    runOnCompile: false,
+    debugMode: false,
+    keepFileStructure: true,
+    freshOutput: true,
+    outputDir: "./generated/docs",
+    include: ["contracts"],
+  },
+  paths: {
+    cache: "./generated/cache",
+    artifacts: "./generated/artifacts",
+    deployments: "./generated/deployments",
+    sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
+  },
+  typechain: {
+    outDir: "./generated/contract-types",
+  },
 };
 export default config;

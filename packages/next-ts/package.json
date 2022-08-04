@@ -48,7 +48,7 @@
     "searchico": "^1.2.1",
     "set.js": "^0.6.0",
     "vercel": "^25.1.0",
-    "wagmi": "^0.5.9"
+    "wagmi": "^0.6.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^12.1.6",

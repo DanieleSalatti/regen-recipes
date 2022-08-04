@@ -4,7 +4,7 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
-import { RFStorage__factory } from "../../contracts/contract-types";
+import { RFStorage__factory, Chef__factory } from "../../contracts/contract-types";
 import foundryContracts from "../../contracts/foundry_contracts.json";
 
 export type contractNameType = keyof typeof ContractsConfig;
@@ -15,6 +15,7 @@ export type contractNameType = keyof typeof ContractsConfig;
  * ---------------------*/
 export const ContractsConfig = {
   RFStorage: { factory: RFStorage__factory, json: foundryContracts },
+  Chef: { factory: Chef__factory, json: foundryContracts },
 } as const;
 
 /** ----------------------

@@ -12,6 +12,7 @@ import {
   useContract,
   erc20ABI,
   useFeeData,
+  usePrepareContractWrite,
 } from "wagmi";
 import { SetProtocolConfig } from "../../config/setProtocolConfig";
 import SetJs from "set.js";
@@ -28,6 +29,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 import { Doughnut } from "react-chartjs-2";
+import { Chef, RFStorage } from "../../contracts/contract-types";
 
 const customStyles = {
   content: {
@@ -74,12 +76,17 @@ export default function Sets(): JSX.Element {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const SetJsInstance = new SetJs(SetJsConfig);
 
-  const RFStorage = useAppLoadContract({
+  const rfStorageContract = useAppLoadContract({
     contractName: "RFStorage",
-  });
+  }) as RFStorage;
+
+  // Switch to useContractWrite and usePrepareContractWrite when possible
+  const chefContract = useAppLoadContract({
+    contractName: "Chef",
+  }) as Chef;
 
   async function getSets(): Promise<void> {
-    const sets = await RFStorage?.getTokenSetsByManager(router.query.managerAddress as string);
+    const sets = await rfStorageContract?.getTokenSetsByManager(router.query.managerAddress as string);
     setSets(sets || []);
   }
 
@@ -100,15 +107,19 @@ export default function Sets(): JSX.Element {
   }, [provider.network.name]);
 
   useEffect(() => {
-    if (RFStorage === undefined || RFStorage.signer === null || RFStorage.signer.getAddress === undefined) {
+    if (
+      rfStorageContract === undefined ||
+      rfStorageContract.signer === null ||
+      rfStorageContract.signer.getAddress === undefined
+    ) {
       return;
     }
-    console.log("RFStorage", RFStorage);
+    console.log("RFStorage", rfStorageContract);
     void getSets();
-  }, [RFStorage]);
+  }, [rfStorageContract]);
 
   useEffect(() => {
-    if (RFStorage === undefined) {
+    if (rfStorageContract === undefined) {
       return;
     }
     void getSets();
@@ -187,6 +198,7 @@ export default function Sets(): JSX.Element {
     setSetsDetails(enrichedSetDetails);
   }
 
+  /*
   const EIZEissueExactSetFromETH = useContractWrite({
     addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
@@ -200,7 +212,7 @@ export default function Sets(): JSX.Element {
     functionName: "redeemExactSetForETH",
     args: [],
   });
-
+*/
   const EIZEInstance = useContract({
     addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
@@ -235,9 +247,7 @@ export default function Sets(): JSX.Element {
       return;
     }
 
-    console.log("EIZEInstance", EIZEInstance);
-
-    const result = await EIZEInstance.getRequiredIssuanceComponents(
+    const result = await chefContract.getRequiredIssuanceComponents(
       debtIssuanceModuleV2Address,
       true, // isDebtIssuance
       ethers.utils.getAddress(currentTokenAddress),
@@ -287,8 +297,23 @@ export default function Sets(): JSX.Element {
     //const totalGas = swapQuotes.reduce((a, b) => a + parseInt(b.gas), 0);
     //console.log("totalGas", totalGas);
 
-    const gasLimit = network.chain?.id === 10 ? 1000000 : 21000;
+    const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
 
+    await chefContract.issueExactSetFromETH(
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
+      swapQuotes.map((swapQuote) => swapQuote.calldata),
+      debtIssuanceModuleV2Address,
+      true, // isDebtIssuance
+      {
+        // overrides
+        from: ethers.utils.getAddress(address),
+        value: ethers.utils.parseUnits(totalCostInEth.toString(), "wei"),
+        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
+        gasLimit: gasLimit,
+      }
+    );
+    /*
     const txRes = await EIZEissueExactSetFromETH.writeAsync({
       args: [
         ethers.utils.getAddress(currentTokenAddress),
@@ -304,7 +329,7 @@ export default function Sets(): JSX.Element {
         gasLimit: gasLimit,
       },
     });
-
+*/
     await getSetDetailsBatch();
     setModalIsOpen(false);
   }
@@ -340,9 +365,7 @@ export default function Sets(): JSX.Element {
       return;
     }
 
-    console.log("EIZEInstance", EIZEInstance);
-
-    const result = await EIZEInstance.getRequiredRedemptionComponents(
+    const result = await chefContract.getRequiredRedemptionComponents(
       debtIssuanceModuleV2Address,
       true, // isDebtIssuance
       ethers.utils.getAddress(currentTokenAddress),
@@ -372,7 +395,7 @@ export default function Sets(): JSX.Element {
         ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
         :*/ chainGasPrice;
 
-    const gasLimit = network.chain?.id === 10 ? 1000000 : 21000;
+    const gasLimit = network.chain?.id === 10 ? 1200000 : 21000;
 
     console.log("gasPrice", gasPrice);
     console.log(
@@ -400,10 +423,26 @@ export default function Sets(): JSX.Element {
     const token = new ethers.Contract(currentTokenAddress, erc20ABI, tempProvider.getSigner());
 
     const txApprove = await token.approve(
-      setProtocolConfig["exchangeIssuanceZeroExAddress"],
+      // setProtocolConfig["exchangeIssuanceZeroExAddress"],
+      chefContract.address,
       ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether")
     );
 
+    await chefContract.redeemExactSetForETH(
+      ethers.utils.getAddress(currentTokenAddress),
+      ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
+      totalCostInEth, // How much ETH we want back at minimum
+      swapQuotes.map((swapQuote) => swapQuote.calldata),
+      debtIssuanceModuleV2Address,
+      true, // isDebtIssuance
+      {
+        // overrides
+        from: ethers.utils.getAddress(address),
+        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
+        gasLimit: gasLimit,
+      }
+    );
+    /*
     const txRes = await EIZEredeemExactSetForETH.writeAsync({
       args: [
         ethers.utils.getAddress(currentTokenAddress),
@@ -419,7 +458,7 @@ export default function Sets(): JSX.Element {
         gasLimit: gasLimit,
       },
     });
-
+*/
     // Reload the page - in the future redirect to "my sets"
     await getSetDetailsBatch();
     setModalIsOpen(false);

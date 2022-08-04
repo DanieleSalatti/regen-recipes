@@ -32,7 +32,7 @@
     "forge:watch-test": "forge test --watch -vvv",
     "forge:generate": "ts-node  --ignore 'generated/*' scripts/generate.ts",
     "forge:account": "ts-node scripts/account.ts",
-    "forge:deploy": "cross-env ETHERSCAN_API_KEY=YIXRPSABD9PEGMNBUXP2ICTXKZNFT2EVAZ ts-node --ignore 'out/*.json'   scripts/deploy.ts ",
+    "forge:deploy": "cross-env ETHERSCAN_API_KEY=YIXRPSABD9PEGMNBUXP2ICTXKZNFT2EVAZ ts-node --ignore 'out/*.json' scripts/deploy.ts ",
     "generate-types": "typechain  --discriminate-types --target=ethers-v5 'out/**/*.json' --out-dir=./generated/contract-types ",
     "foundry:install": "chmod +x foundry-init.mjs && zx foundry-init.mjs",
     "foundry:help": "chmod +x help.mjs && zx help.mjs"

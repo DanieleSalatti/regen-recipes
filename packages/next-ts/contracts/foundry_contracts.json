@@ -2,14 +2,10 @@
     "10": {
         "contracts": {
             "RFStorage": {
-                "address": "0x3e356bc667da320824b9af5ec5b5ce3edaebf754"
-            }
-        }
-    },
-    "42": {
-        "contracts": {
-            "RFStorage": {
-                "address": "0x5526bc90fe40f61eee26299876e36674fa0ae6a3"
+                "address": "0xAC6efAd5443280b1E5D93F5bfe076a7Ce6e448De"
+            },
+            "Chef": {
+                "address": "0xc9899668F36baD25cb49055d8ad2F848cEd21108"
             }
         }
     }

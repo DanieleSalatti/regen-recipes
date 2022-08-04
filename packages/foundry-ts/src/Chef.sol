@@ -7,17 +7,22 @@ pragma solidity >=0.8.0 <0.9.0;
 // NOTE : vs code giving warning  on forge-std import but works on compilation ignore it.
 import "forge-std/Test.sol";
 
-// import "openzeppelin-contracts/contracts/utils/Address.sol";
+import "openzeppelin-contracts/contracts/utils/Address.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
+import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "set-protocol-v2/contracts/interfaces/ISetTokenCreator.sol";
-import "set-protocol-v2/contracts/interfaces/IDebtIssuanceModule.sol";
-import "set-protocol-v2/contracts/interfaces/ITradeModule.sol";
-import "set-protocol-v2/contracts/interfaces/IStreamingFeeModule.sol";
-
+import "./interfaces/ISetTokenCreator.sol";
+import "./interfaces/IDebtIssuanceModule.sol";
+import "./interfaces/ITradeModule.sol";
+import "./interfaces/IStreamingFeeModule.sol";
 import "./interfaces/IExchangeIssuanceZeroEx.sol";
+import "./interfaces/IManagerIssuanceHook.sol";
+
+import "./RFStorage.sol";
 
 contract Chef is Ownable {
+  address public constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
   RFStorage public rfStorage;
   IExchangeIssuanceZeroEx public exchangeIssuanceZeroEx;
 
@@ -51,6 +56,11 @@ contract Chef is Ownable {
 
   constructor(
     address _owner,
+    address _exchangeIssuanceZeroEx,
+    address _setTokenCreator,
+    address _debtIssuanceModuleV2,
+    address _tradeModule,
+    address _streamingFeeModule,
     uint256 _maxManagerFee,
     uint256 _managerIssueFee,
     uint256 _managerRedeemFee,
@@ -58,6 +68,12 @@ contract Chef is Ownable {
     uint256 _streamingFeePercentage,
     address _feeRecipient
   ) payable {
+    exchangeIssuanceZeroEx = IExchangeIssuanceZeroEx(_exchangeIssuanceZeroEx);
+    setTokenCreator = ISetTokenCreator(_setTokenCreator);
+    debtIssuanceModuleV2 = IDebtIssuanceModule(_debtIssuanceModuleV2);
+    tradeModule = ITradeModule(_tradeModule);
+    streamingFeeModule = IStreamingFeeModule(_streamingFeeModule);
+
     maxManagerFee = _maxManagerFee; // 1%
     managerIssueFee = _managerIssueFee; // 0.25%
     managerRedeemFee = _managerRedeemFee; // 0.25%
@@ -70,7 +86,7 @@ contract Chef is Ownable {
   }
 
   function SetRFStorage(address _rfStorage) public onlyOwner {
-    rfStorage = RFStorage(_rfStorage);
+    rfStorage = RFStorage(payable(_rfStorage));
   }
 
   function setSetTokenCreator(address _setTokenCreator) public onlyOwner {
@@ -125,15 +141,18 @@ contract Chef is Ownable {
     string memory _name,
     string memory _symbol
   ) external returns (address) {
-    require(_manager != address(0), "owner cannot be 0");
+    require(_manager != address(0), "manager cannot be 0");
     require(_components.length > 0, "components cannot be empty");
     require(_units.length > 0, "units cannot be empty");
     require(_modules.length > 0, "modules cannot be empty");
-    require(_name.length > 0, "name cannot be empty");
-    require(_symbol.length > 0, "symbol cannot be empty");
+    require(bytes(_name).length > 0, "name cannot be empty");
+    require(bytes(_symbol).length > 0, "symbol cannot be empty");
     require(_components.length == _units.length, "components and units must be the same length");
 
-    address tokenSet = setTokenCreator.createSet(_components, _units, _modules, _name, _symbol);
+    // Temporarily create the set with this contract as manager
+    address tokenSetAddress = setTokenCreator.create(_components, _units, _modules, address(this), _name, _symbol);
+
+    ISetToken tokenSet = ISetToken(tokenSetAddress);
 
     // Initialize all the modules
     // The initialization uses a single manager address. It should be possible to use a delegate
@@ -146,22 +165,25 @@ contract Chef is Ownable {
       managerIssueFee,
       managerRedeemFee,
       feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
-      0x0000000000000000000000000000000000000000
+      IManagerIssuanceHook(0x0000000000000000000000000000000000000000)
     );
 
-    IStreamingFeeModule.FeeState feeState = IStreamingFeeModule.FeeState(
+    IStreamingFeeModule.FeeState memory feeState = IStreamingFeeModule.FeeState(
       feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
       maxStreamingFeePercentage,
       streamingFeePercentage,
       0 // Timestamp last streaming fee was accrued
     );
 
-    streamingFeeModule.initialize(tokenSet);
+    streamingFeeModule.initialize(tokenSet, feeState);
+
+    // Transfer ownership to the manager
+    tokenSet.setManager(_manager);
 
     // Add to storage
-    rfStorage.addTokenSet(_manager, tokenSet);
+    rfStorage.addTokenSet(_manager, tokenSetAddress);
 
-    return tokenSet;
+    return tokenSetAddress;
   }
 
   /**
@@ -181,7 +203,7 @@ contract Chef is Ownable {
     address _issuanceModule,
     bool _isDebtIssuance
   ) external payable returns (uint256) {
-    uint256 ret = exchangeIssuanceZeroEx.issueExactSetFromETH(
+    uint256 ret = exchangeIssuanceZeroEx.issueExactSetFromETH{ value: msg.value }(
       _setToken,
       _amountSetToken,
       _componentQuotes,
@@ -189,7 +211,10 @@ contract Chef is Ownable {
       _isDebtIssuance
     );
 
-    emit ExchangeIssue(msg.sender, _setToken, address(0), 0, ret);
+    _setToken.transfer(msg.sender, _amountSetToken);
+    Address.sendValue(payable(msg.sender), ret);
+
+    emit ExchangeIssue(msg.sender, _setToken, IERC20(ETH_ADDRESS), msg.value - ret, _amountSetToken);
 
     return ret;
   }
@@ -215,6 +240,12 @@ contract Chef is Ownable {
     address _issuanceModule,
     bool _isDebtIssuance
   ) external returns (uint256) {
+    uint256 allowance = _setToken.allowance(msg.sender, address(this));
+    require(allowance >= _amountSetToken, "allowance too low");
+
+    _setToken.transferFrom(msg.sender, address(this), _amountSetToken);
+    _setToken.approve(address(exchangeIssuanceZeroEx), _amountSetToken);
+
     uint256 ret = exchangeIssuanceZeroEx.redeemExactSetForETH(
       _setToken,
       _amountSetToken,
@@ -224,7 +255,9 @@ contract Chef is Ownable {
       _isDebtIssuance
     );
 
-    emit ExchangeRedeem(msg.sender, _setToken, address(0), 0, ret);
+    Address.sendValue(payable(msg.sender), ret);
+
+    emit ExchangeRedeem(msg.sender, _setToken, IERC20(ETH_ADDRESS), _amountSetToken, ret);
 
     return ret;
   }
@@ -242,7 +275,7 @@ contract Chef is Ownable {
     bool _isDebtIssuance,
     ISetToken _setToken,
     uint256 _amountSetToken
-  ) public view returns (address[] memory components, uint256[] memory positions) {
+  ) external view returns (address[] memory components, uint256[] memory positions) {
     return
       exchangeIssuanceZeroEx.getRequiredIssuanceComponents(
         _issuanceModule,
@@ -265,7 +298,7 @@ contract Chef is Ownable {
     bool _isDebtIssuance,
     ISetToken _setToken,
     uint256 _amountSetToken
-  ) public view returns (address[] memory components, uint256[] memory positions) {
+  ) external view returns (address[] memory components, uint256[] memory positions) {
     return
       exchangeIssuanceZeroEx.getRequiredRedemptionComponents(
         _issuanceModule,
@@ -274,4 +307,18 @@ contract Chef is Ownable {
         _amountSetToken
       );
   }
+
+  function withdrawETH() external payable {
+    Address.sendValue(payable(owner()), address(this).balance);
+  }
+
+  function withdrawERC20(address token) external payable {
+    IERC20 erc20Token = IERC20(token);
+    uint256 balance = erc20Token.balanceOf(address(this));
+    erc20Token.transfer(owner(), balance);
+  }
+
+  receive() external payable {}
+
+  fallback() external payable {}
 }

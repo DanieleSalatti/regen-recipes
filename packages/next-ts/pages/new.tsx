@@ -13,6 +13,7 @@ import transactor, { ContractTransactionType } from "../functions/transactor";
 import { Token } from "../types/token";
 import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
 import TokenSelect from "../components/EthComponents/TokenSelect";
+import { Chef, RFStorage } from "../contracts/contract-types";
 
 const New: NextPage = () => {
   const [newSetTokenList, setNewSetTokenList] = useState<Token[]>([]);
@@ -21,7 +22,6 @@ const New: NextPage = () => {
   const [newSetName, setNewSetName] = useState<string>("");
   const [newSetDescription, setNewSetDescription] = useState<string>("");
   const [newSetSymbol, setNewSetSymbol] = useState<string>("");
-  const [newSetAddress, setNewSetAddress] = useState<string>("");
 
   const { address: address, isConnecting } = useAccount();
   const provider = useProvider();
@@ -39,25 +39,9 @@ const New: NextPage = () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const SetJsInstance = new SetJs(SetJsConfig);
 
-  const RFStorage = useAppLoadContract({
-    contractName: "RFStorage",
-  });
-
-  console.log("RFStorage", RFStorage);
-
-  const storeNewSet = async (): Promise<any> => {
-    if (!address) {
-      return;
-    }
-    const rcpt = await transactor(RFStorage?.addTokenSet as ContractTransactionType, [address, newSetAddress, 2]);
-    console.log("rcpt: ", rcpt);
-  };
-
-  useEffect(() => {
-    if (newSetAddress !== "") {
-      void storeNewSet();
-    }
-  }, [newSetAddress]);
+  const chefContract = useAppLoadContract({
+    contractName: "Chef",
+  }) as Chef;
 
   function isTokenInList(token: Token, list: Token[]): boolean {
     return list.some((t) => t.address === token.address && t.chainId === token.chainId);
@@ -165,66 +149,54 @@ const New: NextPage = () => {
             address === undefined
           }
           onClick={(): void => {
+            console.log("newSetTokenList", newSetTokenList);
             // eslint-disable-next-line @typescript-eslint/require-await
-            void (async (): Promise<void> => {
-              console.log(newSetTokenList);
-              console.log(newSetTokenPercentageList);
-              if (address === undefined) {
-                return;
-              }
-              console.log("onclick provider", provider);
-              console.log("onclick provider", provider);
 
-              const tokenSetList = newSetTokenList.map((token) => token.address);
+            console.log(newSetTokenList);
+            console.log(newSetTokenPercentageList);
+            if (address === undefined) {
+              console.log("address is undefined");
+              return;
+            }
+            console.log("onclick provider", provider);
+            console.log("onclick provider", provider);
 
-              console.log("tokenSetList", tokenSetList);
-              console.log("newSetTokenPercentageList", newSetTokenPercentageList);
-              console.log("network.chain?.name", network.chain?.name.toLowerCase());
-              console.log("config", setProtocolConfig);
-              console.log("modules", setProtocolConfig["exchangeIssuanceZeroExAddress"]);
-              console.log("address", address);
-              console.log("newSetName", newSetName);
-              console.log("newSetSymbol", newSetSymbol);
+            const tokenSetList = newSetTokenList.map((token) => token.address);
 
-              SetJsInstance.setToken
-                .createAsync(
-                  tokenSetList,
-                  newSetTokenPercentageList,
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                  [setProtocolConfig["exchangeIssuanceZeroExAddress"]],
-                  address,
-                  newSetName,
-                  newSetSymbol
-                )
-                .then(async (result) => {
-                  const eventSignature = "SetTokenCreated(address,address,string,string)";
-                  const rcpt = await result.wait();
+            console.log("tokenSetList", tokenSetList);
+            console.log("newSetTokenPercentageList", newSetTokenPercentageList);
+            console.log("network.chain?.name", network.chain?.name.toLowerCase());
+            console.log("config", setProtocolConfig);
+            console.log("modules", setProtocolConfig["exchangeIssuanceZeroExAddress"]);
+            console.log("address", address);
+            console.log("newSetName", newSetName);
+            console.log("newSetSymbol", newSetSymbol);
 
-                  // Implementing my own logic because the one from set.js doesn't seem to work
-                  // TODO: contribute better logic to set.js
-                  rcpt.events?.forEach((event) => {
-                    if (
-                      event.eventSignature === eventSignature &&
-                      event.transactionHash === result.hash &&
-                      event.address === setProtocolConfig["setTokenCreatorAddress"] &&
-                      event.args &&
-                      event.args[1] === address
-                    ) {
-                      setNewSetAddress(event.args[0] as string);
-                    }
-                  });
-                })
-                .catch((error) => {
-                  console.log("ERROR", error);
-                })
-                .finally(() => {
-                  setNewSetTokenList([]);
-                  setNewSetTokenPercentageList([]);
-                  setNewSetName("");
-                  setNewSetDescription("");
-                  setNewSetSymbol("");
-                });
-            });
+            transactor(chefContract?.createSet as ContractTransactionType, [
+              tokenSetList,
+              newSetTokenPercentageList,
+              [
+                setProtocolConfig["tradeModuleAddress"],
+                setProtocolConfig["debtIssuanceModuleV2Address"],
+                setProtocolConfig["streamingFeeModuleAddress"],
+              ],
+              address,
+              newSetName,
+              newSetSymbol,
+            ])
+              .then((rcpt) => {
+                console.log("rcpt", rcpt);
+              })
+              .catch((err) => {
+                console.log("err", err);
+              })
+              .finally(() => {
+                setNewSetTokenList([]);
+                setNewSetTokenPercentageList([]);
+                setNewSetName("");
+                setNewSetDescription("");
+                setNewSetSymbol("");
+              });
           }}>
           Create Set
         </button>

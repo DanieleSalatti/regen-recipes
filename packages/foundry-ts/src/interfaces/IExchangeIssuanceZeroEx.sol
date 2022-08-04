@@ -1,9 +1,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
+//SPDX-License-Identifier: MIT
+
 import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-import "set-protocol-v2/contracts/interfaces/ISetToken.sol";
+import "./ISetToken.sol";
 
 interface IExchangeIssuanceZeroEx {
   /**
@@ -15,7 +17,7 @@ interface IExchangeIssuanceZeroEx {
    * @param _spender  Address of the spender which will be approved to spend token.
    *                    (Must be a whitlisted issuance module)
    */
-  function approveToken(IERC20 _token, address _spender) public;
+  function approveToken(IERC20 _token, address _spender) external;
 
   /**
    * Runs all the necessary approval functions required for a list of ERC20 tokens.
@@ -135,7 +137,7 @@ interface IExchangeIssuanceZeroEx {
     bool _isDebtIssuance,
     ISetToken _setToken,
     uint256 _amountSetToken
-  ) public view returns (address[] memory components, uint256[] memory positions);
+  ) external view returns (address[] memory components, uint256[] memory positions);
 
   /**
    * Returns component positions required for Redemption
@@ -150,5 +152,5 @@ interface IExchangeIssuanceZeroEx {
     bool _isDebtIssuance,
     ISetToken _setToken,
     uint256 _amountSetToken
-  ) public view returns (address[] memory components, uint256[] memory positions);
+  ) external view returns (address[] memory components, uint256[] memory positions);
 }

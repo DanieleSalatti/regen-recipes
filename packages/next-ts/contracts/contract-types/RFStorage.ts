@@ -25,7 +25,7 @@ import type {
 export interface RFStorageInterface extends utils.Interface {
   contractName: "RFStorage";
   functions: {
-    "addTokenSet(address,address,uint256)": FunctionFragment;
+    "addTokenSet(address,address)": FunctionFragment;
     "getTokenSetsByManager(address)": FunctionFragment;
     "managerToTokenSets(address,uint256)": FunctionFragment;
     "owner()": FunctionFragment;
@@ -36,7 +36,7 @@ export interface RFStorageInterface extends utils.Interface {
 
   encodeFunctionData(
     functionFragment: "addTokenSet",
-    values: [string, string, BigNumberish]
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenSetsByManager",
@@ -87,7 +87,7 @@ export interface RFStorageInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "AddTokenSet(address,address,uint256)": EventFragment;
+    "AddTokenSet(address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
@@ -96,8 +96,8 @@ export interface RFStorageInterface extends utils.Interface {
 }
 
 export type AddTokenSetEvent = TypedEvent<
-  [string, string, BigNumber],
-  { manager: string; tokenSet: string; version: BigNumber }
+  [string, string],
+  { manager: string; tokenSet: string }
 >;
 
 export type AddTokenSetEventFilter = TypedEventFilter<AddTokenSetEvent>;
@@ -141,7 +141,6 @@ export interface RFStorage extends BaseContract {
     addTokenSet(
       _manager: string,
       _tokenSet: string,
-      _version: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -176,7 +175,6 @@ export interface RFStorage extends BaseContract {
   addTokenSet(
     _manager: string,
     _tokenSet: string,
-    _version: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -208,7 +206,6 @@ export interface RFStorage extends BaseContract {
     addTokenSet(
       _manager: string,
       _tokenSet: string,
-      _version: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -236,16 +233,11 @@ export interface RFStorage extends BaseContract {
   };
 
   filters: {
-    "AddTokenSet(address,address,uint256)"(
+    "AddTokenSet(address,address)"(
       manager?: null,
-      tokenSet?: null,
-      version?: null
+      tokenSet?: null
     ): AddTokenSetEventFilter;
-    AddTokenSet(
-      manager?: null,
-      tokenSet?: null,
-      version?: null
-    ): AddTokenSetEventFilter;
+    AddTokenSet(manager?: null, tokenSet?: null): AddTokenSetEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
@@ -261,7 +253,6 @@ export interface RFStorage extends BaseContract {
     addTokenSet(
       _manager: string,
       _tokenSet: string,
-      _version: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -297,7 +288,6 @@ export interface RFStorage extends BaseContract {
     addTokenSet(
       _manager: string,
       _tokenSet: string,
-      _version: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

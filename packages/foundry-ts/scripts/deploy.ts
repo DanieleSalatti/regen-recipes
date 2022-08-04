@@ -140,7 +140,9 @@ async function run(): Promise<any> {
     }
 
     for (const contract of DEPLOY_CONTRACTS) {
-      await deploy(contract.contractName, { args: [...contract.args[NETWORK_NAME_TO_ID[network]]] });
+      type ArgsKey = keyof typeof contract.args;
+      const args = contract.args[NETWORK_NAME_TO_ID[network] as ArgsKey];
+      await deploy(contract.contractName, { args: [...args] });
     }
   } catch (error) {
     if (network === "localhost") {
