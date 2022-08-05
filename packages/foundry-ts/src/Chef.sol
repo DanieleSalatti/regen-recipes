@@ -159,17 +159,20 @@ contract Chef is Ownable {
     // manager contract and multiple operators to manage the token set. To be investigated.
     tradeModule.initialize(tokenSet);
 
+    // avoid multiple SLOADS
+    address _feeRecipient = feeRecipient;
+
     debtIssuanceModuleV2.initialize(
       tokenSet,
       maxManagerFee,
       managerIssueFee,
       managerRedeemFee,
-      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
+      _feeRecipient == address(0) ? _manager : _feeRecipient, // feeRecipient or manager
       IManagerIssuanceHook(0x0000000000000000000000000000000000000000)
     );
 
     IStreamingFeeModule.FeeState memory feeState = IStreamingFeeModule.FeeState(
-      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
+      _feeRecipient == address(0) ? _manager : _feeRecipient, // feeRecipient or manager
       maxStreamingFeePercentage,
       streamingFeePercentage,
       0 // Timestamp last streaming fee was accrued
@@ -244,9 +247,13 @@ contract Chef is Ownable {
     require(allowance >= _amountSetToken, "allowance too low");
 
     _setToken.transferFrom(msg.sender, address(this), _amountSetToken);
-    _setToken.approve(address(exchangeIssuanceZeroEx), _amountSetToken);
 
-    uint256 ret = exchangeIssuanceZeroEx.redeemExactSetForETH(
+    // avoid multiple SLOADS
+    IExchangeIssuanceZeroEx _exchangeIssuanceZeroEx = exchangeIssuanceZeroEx;
+
+    _setToken.approve(address(_exchangeIssuanceZeroEx), _amountSetToken);
+
+    uint256 ret = _exchangeIssuanceZeroEx.redeemExactSetForETH(
       _setToken,
       _amountSetToken,
       _minEthReceive,
