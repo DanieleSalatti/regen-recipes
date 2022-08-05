@@ -198,21 +198,6 @@ export default function Sets(): JSX.Element {
     setSetsDetails(enrichedSetDetails);
   }
 
-  /*
-  const EIZEissueExactSetFromETH = useContractWrite({
-    addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
-    contractInterface: ExchangeIssuanceZeroExABI,
-    functionName: "issueExactSetFromETH",
-    args: [],
-  });
-
-  const EIZEredeemExactSetForETH = useContractWrite({
-    addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
-    contractInterface: ExchangeIssuanceZeroExABI,
-    functionName: "redeemExactSetForETH",
-    args: [],
-  });
-*/
   const EIZEInstance = useContract({
     addressOrName: setProtocolConfig["exchangeIssuanceZeroExAddress"],
     contractInterface: ExchangeIssuanceZeroExABI,
@@ -313,23 +298,6 @@ export default function Sets(): JSX.Element {
         gasLimit: gasLimit,
       }
     );
-    /*
-    const txRes = await EIZEissueExactSetFromETH.writeAsync({
-      args: [
-        ethers.utils.getAddress(currentTokenAddress),
-        ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
-        swapQuotes.map((swapQuote) => swapQuote.calldata),
-        debtIssuanceModuleV2Address,
-        true, // isDebtIssuance
-      ],
-      overrides: {
-        from: ethers.utils.getAddress(address),
-        value: ethers.utils.parseUnits(totalCostInEth.toString(), "wei"),
-        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
-        gasLimit: gasLimit,
-      },
-    });
-*/
     await getSetDetailsBatch();
     setModalIsOpen(false);
   }
@@ -442,23 +410,6 @@ export default function Sets(): JSX.Element {
         gasLimit: gasLimit,
       }
     );
-    /*
-    const txRes = await EIZEredeemExactSetForETH.writeAsync({
-      args: [
-        ethers.utils.getAddress(currentTokenAddress),
-        ethers.utils.parseUnits(currentTokenQuantity.toString(), "ether"),
-        totalCostInEth, // How much ETH we want back at minimum
-        swapQuotes.map((swapQuote) => swapQuote.calldata),
-        debtIssuanceModuleV2Address,
-        true, // isDebtIssuance
-      ],
-      overrides: {
-        from: ethers.utils.getAddress(address),
-        gasPrice: ethers.utils.parseUnits(gasPrice.toFixed(4).toString(), "gwei"),
-        gasLimit: gasLimit,
-      },
-    });
-*/
     // Reload the page - in the future redirect to "my sets"
     await getSetDetailsBatch();
     setModalIsOpen(false);
