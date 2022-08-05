@@ -20,6 +20,17 @@ import "./interfaces/IManagerIssuanceHook.sol";
 
 import "./RFStorage.sol";
 
+//custom errors
+error EMPTY_COMPONENTS();
+error EMPTY_MANAGER();
+error EMPTY_MODULES();
+error EMPTY_NAME();
+error EMPTY_SYMBOL();
+error EMPTY_UNITS();
+error INVALID_ARRAY_INPUT();
+error INVALID_MANAGER();
+error LOW_ALLOWANCE();
+
 contract Chef is Ownable {
   address public constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
@@ -141,14 +152,33 @@ contract Chef is Ownable {
     string memory _name,
     string memory _symbol
   ) external returns (address) {
-    require(_manager != address(0), "manager cannot be 0");
-    require(_components.length > 0, "components cannot be empty");
-    require(_units.length > 0, "units cannot be empty");
-    require(_modules.length > 0, "modules cannot be empty");
-    require(bytes(_name).length > 0, "name cannot be empty");
-    require(bytes(_symbol).length > 0, "symbol cannot be empty");
-    require(_components.length == _units.length, "components and units must be the same length");
+    if (_manager == address(0)) {
+      revert EMPTY_MANAGER();
+    }
 
+    if (_components.length == 0) {
+      revert EMPTY_COMPONENTS();
+    }
+
+    if (_units.length == 0) {
+      revert EMPTY_UNITS();
+    }
+
+    if (_modules.length == 0) {
+      revert EMPTY_MODULES();
+    }
+
+    if (bytes(_name).length == 0) {
+      revert EMPTY_NAME();
+    }
+
+    if (bytes(_symbol).length == 0) {
+      revert EMPTY_SYMBOL();
+    }
+
+    if (_components.length != _units.length) {
+      revert INVALID_ARRAY_INPUT();
+    }
     // Temporarily create the set with this contract as manager
     address tokenSetAddress = setTokenCreator.create(_components, _units, _modules, address(this), _name, _symbol);
 
@@ -244,8 +274,9 @@ contract Chef is Ownable {
     bool _isDebtIssuance
   ) external returns (uint256) {
     uint256 allowance = _setToken.allowance(msg.sender, address(this));
-    require(allowance >= _amountSetToken, "allowance too low");
-
+    if (allowance < _amountSetToken) {
+      revert LOW_ALLOWANCE();
+    }
     _setToken.transferFrom(msg.sender, address(this), _amountSetToken);
 
     // avoid multiple SLOADS
