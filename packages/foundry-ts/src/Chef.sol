@@ -20,6 +20,17 @@ import "./interfaces/IManagerIssuanceHook.sol";
 
 import "./RFStorage.sol";
 
+//custom errors
+error EMPTY_COMPONENTS();
+error EMPTY_MANAGER();
+error EMPTY_MODULES();
+error EMPTY_NAME();
+error EMPTY_SYMBOL();
+error EMPTY_UNITS();
+error INVALID_ARRAY_INPUT();
+error INVALID_MANAGER();
+error LOW_ALLOWANCE();
+
 contract Chef is Ownable {
   address public constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
@@ -141,14 +152,33 @@ contract Chef is Ownable {
     string memory _name,
     string memory _symbol
   ) external returns (address) {
-    require(_manager != address(0), "manager cannot be 0");
-    require(_components.length > 0, "components cannot be empty");
-    require(_units.length > 0, "units cannot be empty");
-    require(_modules.length > 0, "modules cannot be empty");
-    require(bytes(_name).length > 0, "name cannot be empty");
-    require(bytes(_symbol).length > 0, "symbol cannot be empty");
-    require(_components.length == _units.length, "components and units must be the same length");
+    if (_manager == address(0)) {
+      revert EMPTY_MANAGER();
+    }
 
+    if (_components.length == 0) {
+      revert EMPTY_COMPONENTS();
+    }
+
+    if (_units.length == 0) {
+      revert EMPTY_UNITS();
+    }
+
+    if (_modules.length == 0) {
+      revert EMPTY_MODULES();
+    }
+
+    if (bytes(_name).length == 0) {
+      revert EMPTY_NAME();
+    }
+
+    if (bytes(_symbol).length == 0) {
+      revert EMPTY_SYMBOL();
+    }
+
+    if (_components.length != _units.length) {
+      revert INVALID_ARRAY_INPUT();
+    }
     // Temporarily create the set with this contract as manager
     address tokenSetAddress = setTokenCreator.create(_components, _units, _modules, address(this), _name, _symbol);
 
@@ -159,17 +189,20 @@ contract Chef is Ownable {
     // manager contract and multiple operators to manage the token set. To be investigated.
     tradeModule.initialize(tokenSet);
 
+    // avoid multiple SLOADS
+    address _feeRecipient = feeRecipient;
+
     debtIssuanceModuleV2.initialize(
       tokenSet,
       maxManagerFee,
       managerIssueFee,
       managerRedeemFee,
-      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
+      _feeRecipient == address(0) ? _manager : _feeRecipient, // feeRecipient or manager
       IManagerIssuanceHook(0x0000000000000000000000000000000000000000)
     );
 
     IStreamingFeeModule.FeeState memory feeState = IStreamingFeeModule.FeeState(
-      feeRecipient == address(0) ? _manager : feeRecipient, // feeRecipient or manager
+      _feeRecipient == address(0) ? _manager : _feeRecipient, // feeRecipient or manager
       maxStreamingFeePercentage,
       streamingFeePercentage,
       0 // Timestamp last streaming fee was accrued
@@ -241,12 +274,17 @@ contract Chef is Ownable {
     bool _isDebtIssuance
   ) external returns (uint256) {
     uint256 allowance = _setToken.allowance(msg.sender, address(this));
-    require(allowance >= _amountSetToken, "allowance too low");
-
+    if (allowance < _amountSetToken) {
+      revert LOW_ALLOWANCE();
+    }
     _setToken.transferFrom(msg.sender, address(this), _amountSetToken);
-    _setToken.approve(address(exchangeIssuanceZeroEx), _amountSetToken);
 
-    uint256 ret = exchangeIssuanceZeroEx.redeemExactSetForETH(
+    // avoid multiple SLOADS
+    IExchangeIssuanceZeroEx _exchangeIssuanceZeroEx = exchangeIssuanceZeroEx;
+
+    _setToken.approve(address(_exchangeIssuanceZeroEx), _amountSetToken);
+
+    uint256 ret = _exchangeIssuanceZeroEx.redeemExactSetForETH(
       _setToken,
       _amountSetToken,
       _minEthReceive,
