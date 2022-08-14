@@ -35,7 +35,7 @@ const Home: NextPage = () => {
   return (
     <main className="flex flex-col items-center justify-center m-2 lg:mx-4">
       <div className="m-2">
-        <div className="grid grid-cols-3 gap-16">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {regens.map((regen) => (
             <Card
               key={regen.name}

@@ -1,6 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useTheme } from "next-themes";
-import Image from "next/image";
 
 import NavigationTabs from "./NavigationTabs";
 import ThemeSwitch from "./ThemeSwitch";
@@ -14,9 +13,9 @@ const Header: React.FC = () => {
         <div className="navbar-start">
           <a className="text-sm normal-case btn btn-ghost lg:text-xl" href="/">
             {theme === "light" ? (
-              <Image src="/full-positive.svg" alt="🌱 Regen.Recipes" width={100} height={37} />
+              <img src="/full-positive.svg" alt="🌱 Regen.Recipes" width={100} height={37} />
             ) : (
-              <Image src="/full-negative.svg" alt="🌱 Regen.Recipes" width={100} height={37} />
+              <img src="/full-negative.svg" alt="🌱 Regen.Recipes" width={100} height={37} />
             )}
           </a>
         </div>
