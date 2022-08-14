@@ -1,11 +1,10 @@
-import { darkTheme, RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
+import { darkTheme, lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { Chain, WagmiConfig } from "wagmi";
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import { chains, wagmiClient } from "./configs/appContract.config";
-
 
 const RainbowKitWrapper: React.FC<any> = ({ children }) => {
   const { theme } = useTheme();
@@ -27,12 +26,13 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
   return (
     <div>
       <WagmiConfig client={wagmiClient}>
-        <RainbowKitProvider chains={chains as Chain[]}
-            theme={currentTheme}
-            appInfo={{
-              appName: "Regen.Finance",
-              learnMoreUrl: "https://danielesalatti.com",
-            }}>
+        <RainbowKitProvider
+          chains={chains as Chain[]}
+          theme={currentTheme}
+          appInfo={{
+            appName: "Regen.Recipes",
+            learnMoreUrl: "https://danielesalatti.com",
+          }}>
           {children}
         </RainbowKitProvider>
       </WagmiConfig>
