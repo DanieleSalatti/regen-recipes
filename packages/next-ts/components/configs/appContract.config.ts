@@ -1,10 +1,8 @@
 import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { Chain, chain, configureChains, createClient } from "wagmi";
-import { alchemyProvider } from "wagmi/providers/alchemy";
-import { publicProvider } from "wagmi/providers/public";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
-import { RFStorage__factory, Chef__factory } from "../../contracts/contract-types";
+import { Chef__factory, RFStorage__factory } from "../../contracts/contract-types";
 import foundryContracts from "../../contracts/foundry_contracts.json";
 
 export type contractNameType = keyof typeof ContractsConfig;
@@ -23,9 +21,6 @@ export const ContractsConfig = {
  * ---------------------*/
 const TARGATED_CHAINS = ["optimism", "mainnet"];
 // define your target names in root .env file inside NEXT_PUBLIC_TARGET_NETWORKS variable
-// const TARGATED_CHAINS = [...(process.env.NEXT_PUBLIC_TARGET_NETWORKS as string).split(",")];
-
-// disabled: define your target names in root .env file inside NEXT_PUBLIC_TARGET_NETWORKS variable
 // const TARGATED_CHAINS = [...(process.env.NEXT_PUBLIC_TARGET_NETWORKS as string).split(",")];
 
 export const targetNetowrks = (requiredChains: string[]): Chain[] => {

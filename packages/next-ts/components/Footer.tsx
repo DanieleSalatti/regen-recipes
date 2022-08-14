@@ -1,8 +1,6 @@
-import FaucetModal from "./FaucetModal";
-
 const Footer: React.FC = () => {
   return (
-    <footer className="footer items-center p-4 ">
+    <footer className="footer items-center p-4 flex-end">
       <div className="items-center grid-flow-col">
         <p>Copyright © Regen.Finance 2022 - All right reserved</p>
       </div>

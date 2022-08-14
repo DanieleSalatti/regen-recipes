@@ -1,13 +1,11 @@
-import Header from "./Header";
 import Footer from "./Footer";
-import FaucetModal from "./FaucetModal";
+import Header from "./Header";
 
 const Layout: React.FC<any> = ({ children }) => {
   return (
-    <div className="h-screen">
+    <div className="h-screen flex flex-col">
       <Header />
-      <div>{children}</div>
-      <FaucetModal />
+      <div className="h-full">{children}</div>
       <Footer />
     </div>
   );
