@@ -1,31 +1,18 @@
-import { GetStaticProps, InferGetStaticPropsType } from "next";
-import { useRouter } from "next/router";
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  useAccount,
-  useBalance,
-  useProvider,
-  useSigner,
-  useNetwork,
-  useContractWrite,
-  useContractRead,
-  useContract,
-  erc20ABI,
-  useFeeData,
-  usePrepareContractWrite,
-} from "wagmi";
-import { SetProtocolConfig } from "../../config/setProtocolConfig";
-import SetJs from "set.js";
-import useAppLoadContract from "../../hooks/useAppLoadContract";
 import { BigNumber, BigNumberish, ethers } from "ethers";
-import { Token } from "../../types/token";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import Modal from "react-modal";
+import SetJs from "set.js";
+import { erc20ABI, useAccount, useContract, useFeeData, useNetwork, useProvider } from "wagmi";
+import { SetProtocolConfig } from "../../config/setProtocolConfig";
+import useAppLoadContract from "../../hooks/useAppLoadContract";
+import { Token } from "../../types/token";
 
-import { ExchangeIssuanceZeroExABI } from "../../contracts/ExchangeIssuanceZeroEx.abi";
-import { SwapOrderPairs } from "set.js/dist/types/src/types";
 import { ExternalProvider, JsonRpcFetchFunc } from "@ethersproject/providers";
+import { SwapOrderPairs } from "set.js/dist/types/src/types";
+import { ExchangeIssuanceZeroExABI } from "../../contracts/ExchangeIssuanceZeroEx.abi";
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 import { Doughnut } from "react-chartjs-2";
@@ -363,7 +350,7 @@ export default function Sets(): JSX.Element {
         ? chainGasPrice + parseFloat(mainnetGasPrice.data?.formatted.gasPrice as string)
         :*/ chainGasPrice;
 
-    const gasLimit = network.chain?.id === 10 ? 1200000 : 21000;
+    const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
 
     console.log("gasPrice", gasPrice);
     console.log(

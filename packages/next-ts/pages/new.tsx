@@ -165,18 +165,26 @@ const New: NextPage = () => {
               return parseUnits((perc.valueOf() / price["eur"]).toFixed(4), "ether");
             });
 
-            transactor(chefContract?.createSet as ContractTransactionType, [
-              tokenSetList,
-              units,
+            const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
+
+            transactor(
+              chefContract?.createSet as ContractTransactionType,
               [
-                setProtocolConfig["tradeModuleAddress"],
-                setProtocolConfig["debtIssuanceModuleV2Address"],
-                setProtocolConfig["streamingFeeModuleAddress"],
+                tokenSetList,
+                units,
+                [
+                  setProtocolConfig["tradeModuleAddress"],
+                  setProtocolConfig["debtIssuanceModuleV2Address"],
+                  setProtocolConfig["streamingFeeModuleAddress"],
+                ],
+                address,
+                newSetName,
+                newSetSymbol,
               ],
-              address,
-              newSetName,
-              newSetSymbol,
-            ])
+              {
+                gasLimit,
+              }
+            )
               .then((rcpt) => {
                 console.log("rcpt", rcpt);
               })
