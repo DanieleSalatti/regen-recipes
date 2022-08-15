@@ -8,8 +8,8 @@ const Header: React.FC = () => {
   const { theme } = useTheme();
 
   return (
-    <div className="flex flex-col items-center dark:bg-black">
-      <div className="navbar bg-base-0  shadow-sm">
+    <div className="flex flex-col items-center ">
+      <div className="navbar bg-base-0 shadow-sm">
         <div className="navbar-start">
           <a className="text-sm normal-case btn btn-ghost lg:text-xl" href="/">
             {theme === "light" ? (
