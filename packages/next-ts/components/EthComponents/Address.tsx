@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Blockies from "react-blockies";
 import CopyToClipBoard from "react-copy-to-clipboard";
 import { FaDollarSign, FaEthereum } from "react-icons/fa";
@@ -8,7 +8,7 @@ import { IoCopyOutline } from "react-icons/io5";
 
 interface IAddress {
   address: string;
-  price: number;
+  price?: number;
   isBalance: boolean;
   provider: ethers.providers.BaseProvider;
 }
@@ -43,7 +43,7 @@ const Address = ({ address, price, isBalance, provider }: IAddress): any => {
 
   return (
     <>
-      <div className="flex items-center justify-between p-1 border-2 border-base-200 rounded-xl">
+      <div className="flex items-center justify-between p-1">
         <div className="rounded-xl blockies">
           <Blockies seed={address ? address?.toLowerCase() : "aaaaa"} size={11} />
         </div>

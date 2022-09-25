@@ -8,7 +8,7 @@ import { useAccount, useNetwork, useProvider } from "wagmi";
 import TokenSelect from "../components/EthComponents/TokenSelect";
 import { SetProtocolConfig } from "../config/setProtocolConfig";
 import { Chef } from "../contracts/contract-types";
-import transactor, { ContractTransactionType } from "../functions/transactor";
+import Transactor, { ContractTransactionType } from "../functions/transactor";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 import { Token } from "../types/token";
 
@@ -167,7 +167,7 @@ const New: NextPage = () => {
 
             const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
 
-            transactor(
+            Transactor(
               chefContract?.createSet as ContractTransactionType,
               [
                 tokenSetList,

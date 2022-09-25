@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-import { AiOutlineHome, AiOutlineInfoCircle, AiOutlineBulb } from "react-icons/ai";
-import { VscDebugAll, VscAdd } from "react-icons/vsc";
-import { BsViewList } from "react-icons/bs";
+import { AiOutlineHome } from "react-icons/ai";
+import { VscAdd } from "react-icons/vsc";
 
 /**----------------------
  * add new tab here
@@ -54,7 +53,7 @@ const NavigationTabs: React.FC = () => {
           {navigationTabs.map((tab) => {
             return (
               <li
-                className={`${pathname === tab.pageName ? "" : "tooltip tooltip-info"}`}
+                className={`${pathname === tab.pageName ? "" : "tooltip-info"}`}
                 data-tip={tab.tabName}
                 key={tab.tabName}>
                 <Link href={tab.pageName}>

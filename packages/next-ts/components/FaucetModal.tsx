@@ -20,7 +20,7 @@ const FaucetModal: React.FC = () => {
     setToAddress(address as string);
 
     // check localhost and enable faucet modal
-    if (["Hardhat", "Localhost"].includes(chain?.name as string)) {
+    if (["Hardhat", "Localhost", "Foundry"].includes(chain?.name as string)) {
       setIsFaucetVisible(true);
       setSendAddress(address as string);
     } else {
