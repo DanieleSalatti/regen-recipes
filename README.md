@@ -4,6 +4,10 @@
 
 0x9810B9BfcAd6a9cEE06bd5CDCB9Fb16e6AE2994B
 
+## Ethereum Solarpunk Index
+
+0x712E58986013dbB13053807747f319ACb66bCE69
+
 ## Typescript
 
 This is the typescript repo of scaffold.eth with foundry, rainbowkit , wagmi hooks and nextjs.
