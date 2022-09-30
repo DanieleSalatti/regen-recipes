@@ -2,6 +2,7 @@ import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { Chain, chain, configureChains, createClient } from "wagmi";
 import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 
+import { SafeConnector } from "@gnosis.pm/safe-apps-wagmi";
 import { Chef__factory, RFStorage__factory } from "../../contracts/contract-types";
 import foundryContracts from "../../contracts/foundry_contracts.json";
 
@@ -76,8 +77,11 @@ const { connectors } = getDefaultWallets({
   chains,
 });
 
+const connectorsWithSafe = connectors();
+connectorsWithSafe.push(new SafeConnector({ chains }));
+
 export const wagmiClient = createClient({
   autoConnect: true,
-  connectors,
+  connectors: connectorsWithSafe,
   provider,
 });
