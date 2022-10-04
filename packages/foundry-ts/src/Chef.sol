@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 // import "hardhat/console.sol";
 
-// NOTE : vs code giving warning  on forge-std import but works on compilation ignore it.
+// NOTE : vs code giving warning on forge-std import but works on compilation ignore it.
 import "forge-std/Test.sol";
 
 import "openzeppelin-contracts/contracts/utils/Address.sol";
