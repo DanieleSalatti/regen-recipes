@@ -1,6 +1,5 @@
 import React, { createContext, useEffect, useReducer, useState } from "react";
 
-import useDexPrice from "../hooks/useDexPrice";
 import { dispatch, IStoreState } from "../types/storeTypes";
 
 export type TypeStoreState = [IStoreState, dispatch]; // <-- define your states types
@@ -19,12 +18,6 @@ const Reducer = (state: IStoreState, action: { payload: any }): any => {
 const StoreProvider: React.FC<any> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
   const [state, dispatch] = useReducer(Reducer, initialState);
-
-  const { ethPrice, usdPrice } = useDexPrice();
-
-  useEffect(() => {
-    dispatch({ payload: { ethPrice } }); // <---- eg: dispatch global states with payload and state properties
-  }, [ethPrice]);
 
   // default nextjs hydrtion issue managed
   useEffect(() => setMounted(true), []); // at init only

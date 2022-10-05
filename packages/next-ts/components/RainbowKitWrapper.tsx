@@ -1,5 +1,5 @@
 import { darkTheme, lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { Chain, WagmiConfig } from "wagmi";
+import { WagmiConfig } from "wagmi";
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -27,7 +27,7 @@ const RainbowKitWrapper: React.FC<any> = ({ children }) => {
     <div>
       <WagmiConfig client={wagmiClient}>
         <RainbowKitProvider
-          chains={chains as Chain[]}
+          chains={chains}
           theme={currentTheme}
           appInfo={{
             appName: "Regen.Recipes",

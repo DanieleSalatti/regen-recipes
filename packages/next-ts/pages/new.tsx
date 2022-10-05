@@ -8,14 +8,14 @@ import { useAccount, useNetwork, useProvider } from "wagmi";
 import TokenSelect from "../components/EthComponents/TokenSelect";
 import { SetProtocolConfig } from "../config/setProtocolConfig";
 import { Chef } from "../contracts/contract-types";
-import Transactor, { ContractTransactionType } from "../functions/transactor";
+import Transactor, { ContractTransactionType } from "../functions/Transactor";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 import { Token } from "../types/token";
 
 const New: NextPage = () => {
   const [newSetTokenList, setNewSetTokenList] = useState<Token[]>([]);
-  const [newSetTokenPercentageList, setNewSetTokenPercentageList] = useState<Number[]>([]);
-  const [newSetTokenAllocationTotal, setNewSetTokenAllocationTotal] = useState<Number>(0);
+  const [newSetTokenPercentageList, setNewSetTokenPercentageList] = useState<number[]>([]);
+  const [newSetTokenAllocationTotal, setNewSetTokenAllocationTotal] = useState<number>(0);
   const [newSetName, setNewSetName] = useState<string>("");
   const [newSetDescription, setNewSetDescription] = useState<string>("");
   const [newSetSymbol, setNewSetSymbol] = useState<string>("");
@@ -53,6 +53,61 @@ const New: NextPage = () => {
     setNewSetTokenPercentageList([...newSetTokenPercentageList, 0]);
   }
 
+  async function createNewSetTokenList(): Promise<void> {
+    console.log("newSetTokenList", newSetTokenList);
+    if (address === undefined) {
+      console.log("address is undefined");
+      return;
+    }
+    console.log("onclick provider", provider);
+    console.log("onclick provider", provider);
+
+    const tokenSetList = newSetTokenList.map((token) => token.address);
+    const prices = await SetJsInstance.utils.fetchCoinPricesAsync(tokenSetList, ["EUR"]);
+
+    console.log("prices", prices);
+
+    const units = tokenSetList.map((token, i) => {
+      const price = prices[token.toLowerCase()];
+      const perc = newSetTokenPercentageList[i];
+      return parseUnits((perc.valueOf() / price["eur"]).toFixed(4), "ether");
+    });
+
+    const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
+
+    Transactor(
+      chefContract?.createSet as ContractTransactionType,
+      [
+        tokenSetList,
+        units,
+        [
+          setProtocolConfig["tradeModuleAddress"],
+          setProtocolConfig["debtIssuanceModuleV2Address"],
+          setProtocolConfig["streamingFeeModuleAddress"],
+        ],
+        address,
+        newSetName,
+        newSetSymbol,
+      ],
+      {
+        gasLimit,
+      }
+    )
+      .then((rcpt) => {
+        console.log("rcpt", rcpt);
+      })
+      .catch((err) => {
+        console.log("err", err);
+      })
+      .finally(() => {
+        setNewSetTokenList([]);
+        setNewSetTokenPercentageList([]);
+        setNewSetName("");
+        setNewSetDescription("");
+        setNewSetSymbol("");
+      });
+  }
+
   return address ? (
     <main className="flex flex-col items-center justify-center">
       <div className="m-2 mt-16">
@@ -75,7 +130,7 @@ const New: NextPage = () => {
       <div className="m-2 mt-16">
         <TokenSelect
           onChange={(option): void => {
-            addToken(option);
+            addToken(option as Token);
           }}
           chainId={network.chain?.id}
           localProvider={provider}></TokenSelect>
@@ -145,59 +200,10 @@ const New: NextPage = () => {
             newSetTokenList.length === 0 ||
             address === undefined
           }
-          onClick={async (): Promise<void> => {
-            console.log("newSetTokenList", newSetTokenList);
-            if (address === undefined) {
-              console.log("address is undefined");
-              return;
-            }
-            console.log("onclick provider", provider);
-            console.log("onclick provider", provider);
-
-            const tokenSetList = newSetTokenList.map((token) => token.address);
-            const prices = await SetJsInstance.utils.fetchCoinPricesAsync(tokenSetList, ["EUR"]);
-
-            console.log("prices", prices);
-
-            const units = tokenSetList.map((token, i) => {
-              const price = prices[token.toLowerCase()];
-              const perc = newSetTokenPercentageList[i];
-              return parseUnits((perc.valueOf() / price["eur"]).toFixed(4), "ether");
+          onClick={(): void => {
+            createNewSetTokenList().catch((err) => {
+              console.log("err", err);
             });
-
-            const gasLimit = network.chain?.id === 10 ? 2000000 : 21000;
-
-            Transactor(
-              chefContract?.createSet as ContractTransactionType,
-              [
-                tokenSetList,
-                units,
-                [
-                  setProtocolConfig["tradeModuleAddress"],
-                  setProtocolConfig["debtIssuanceModuleV2Address"],
-                  setProtocolConfig["streamingFeeModuleAddress"],
-                ],
-                address,
-                newSetName,
-                newSetSymbol,
-              ],
-              {
-                gasLimit,
-              }
-            )
-              .then((rcpt) => {
-                console.log("rcpt", rcpt);
-              })
-              .catch((err) => {
-                console.log("err", err);
-              })
-              .finally(() => {
-                setNewSetTokenList([]);
-                setNewSetTokenPercentageList([]);
-                setNewSetName("");
-                setNewSetDescription("");
-                setNewSetSymbol("");
-              });
           }}>
           Create Set
         </button>

@@ -312,12 +312,12 @@ const Set = ({ setDetails }: ISet): any => {
   }
 
   function createGraphData(allocations: any): PieChartData {
-    let labels: string[] = [];
-    let values: number[] = [];
+    const labels: string[] = [];
+    const values: number[] = [];
 
     allocations.forEach((token, index) => {
-      labels.push(token.name);
-      values.push(token.value);
+      labels.push(token.name as string);
+      values.push(token.value as number);
     });
 
     console.log("DASA", {

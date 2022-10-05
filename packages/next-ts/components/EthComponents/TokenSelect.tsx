@@ -1,19 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useMemo, useEffect } from "react";
-import { ethers } from "ethers";
+import { Provider } from "@ethersproject/providers";
 import axios from "axios";
-import searchico from "searchico";
+import { ethers } from "ethers";
+import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
+import searchico from "searchico";
 import { Token } from "../../types/token";
-import { const_web3DialogClosedByUser } from "eth-hooks/models";
 
 // helpers to load token name and symbol for unlisted tokens
 const ERC20ABI = ["function symbol() view returns (string)", "function name() view returns (string)"];
 
-const loadERC20 = async (address, p) => {
+const loadERC20 = async (address, p): Promise<any> => {
   try {
     // load token information here
-    const r = new ethers.Contract(address, ERC20ABI, p);
+    const r = new ethers.Contract(address as string, ERC20ABI, p as Provider);
     const name = await r.name?.();
     const symbol = await r.symbol?.();
 
@@ -23,12 +23,13 @@ const loadERC20 = async (address, p) => {
   }
 };
 
-export default function TokenSelect({ onChange, chainId = 1, nativeToken = {}, localProvider, ...props }) {
-  const [value, setValue] = useState(null);
+export default function TokenSelect({ onChange, chainId = 1, nativeToken = {}, localProvider, ...props }): JSX.Element {
+  const [value, setValue] = useState<any>(null);
   const [list, setList] = useState<Token[]>([]);
   const [searchResults, setSearchResults] = useState([]);
 
   const listCollection = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return searchico(list, { keys: ["address", "name", "symbol"] });
   }, [list.length, chainId]);
 
@@ -100,7 +101,7 @@ export default function TokenSelect({ onChange, chainId = 1, nativeToken = {}, l
     setSearchResults(collectionResult);
   };*/
 
-  const handleOnChange = async (option) => {
+  const handleOnChange = (option): void => {
     setSearchResults([]);
 
     // TODO : check if it's an address that's not on list & Add as unlisted
@@ -114,7 +115,7 @@ export default function TokenSelect({ onChange, chainId = 1, nativeToken = {}, l
     }
   };
 
-  const loadList = async () => {
+  const loadList = async (): Promise<void> => {
     const res = await axios.get(
       "https://raw.githubusercontent.com/DanieleSalatti/ReFi-Tokens/main/refi.tokenlist.json"
     );

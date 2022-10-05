@@ -36,8 +36,8 @@
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "next/core-web-vitals",
-    "next",
+    // "next/core-web-vitals",
+    // "next",
     "prettier",
     "plugin:@next/next/recommended"
   ],
