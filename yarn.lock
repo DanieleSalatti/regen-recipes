@@ -2755,10 +2755,6 @@ __metadata:
     "@types/react-modal": ^3
     "@typescript-eslint/eslint-plugin": ^5.21.0
     "@typescript-eslint/parser": ^5.21.0
-    "@uniswap/sdk-core": ^3.0.1
-    "@uniswap/v3-core": ^1.0.1
-    "@uniswap/v3-periphery": ^1.4.2
-    "@uniswap/v3-sdk": ^3.9.0
     autoprefixer: ^10.4.7
     axios: ^1.0.0
     chart.js: ^3.9.0
@@ -4119,7 +4115,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@uniswap/v3-core@npm:1.0.1, @uniswap/v3-core@npm:^1.0.1":
+"@uniswap/v3-core@npm:1.0.1":
   version: 1.0.1
   resolution: "@uniswap/v3-core@npm:1.0.1"
   checksum: 4bfd8b218391a3d9efde44e0f984cfec3bc25889cd4d1386766828521006e71b210a3583ee32b52f3c81d384af9e8c39f471f2229e9af4d50da6801446ecb3e4
@@ -4140,7 +4136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@uniswap/v3-periphery@npm:^1.0.1, @uniswap/v3-periphery@npm:^1.1.1, @uniswap/v3-periphery@npm:^1.4.2":
+"@uniswap/v3-periphery@npm:^1.0.1, @uniswap/v3-periphery@npm:^1.1.1":
   version: 1.4.2
   resolution: "@uniswap/v3-periphery@npm:1.4.2"
   dependencies:
@@ -4153,7 +4149,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@uniswap/v3-sdk@npm:^3.5.1, @uniswap/v3-sdk@npm:^3.9.0":
+"@uniswap/v3-sdk@npm:^3.5.1":
   version: 3.9.0
   resolution: "@uniswap/v3-sdk@npm:3.9.0"
   dependencies:
