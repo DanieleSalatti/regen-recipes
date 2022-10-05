@@ -8,9 +8,9 @@ import { useAccount, useNetwork, useProvider } from "wagmi";
 import TokenSelect from "../components/EthComponents/TokenSelect";
 import { SetProtocolConfig } from "../config/setProtocolConfig";
 import { Chef } from "../contracts/contract-types";
-import Transactor, { ContractTransactionType } from "../functions/Transactor";
 import useAppLoadContract from "../hooks/useAppLoadContract";
 import { Token } from "../types/token";
+import Transactor, { ContractTransactionType } from "../utils/Transactor";
 
 const New: NextPage = () => {
   const [newSetTokenList, setNewSetTokenList] = useState<Token[]>([]);
